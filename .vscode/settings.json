@@ -6,5 +6,8 @@
     ],
     "idf.port": "/dev/tty.usbserial-0001",
     "idf.toolsPath": "/Users/divyanshu/.espressif",
-    "deepscan.ignoreConfirmWarning": true
+    "deepscan.ignoreConfirmWarning": true,
+    "files.associations": {
+        "esp_rmaker_standard_devices.h": "c"
+    }
 }

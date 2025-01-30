@@ -23,8 +23,10 @@
 
 /* This is the GPIO on which the power will be set */
 #define OUTPUT_GPIO    CONFIG_EXAMPLE_OUTPUT_GPIO
+#define OUTPUT_GPIO2   20
 
 static bool g_power_state = DEFAULT_POWER;
+static bool g_power_state2 = DEFAULT_POWER;
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -64,6 +66,15 @@ static void set_power_state(bool target)
     app_indicator_set(target);
 }
 
+static void set_power_state2(bool target)
+{
+    gpio_set_level(OUTPUT_GPIO2, target);
+    // Optionally add a different indicator for the second switch
+    // For now, we'll use the same RGB LED
+    app_indicator_set(target);
+}
+
+
 void app_driver_init()
 {
     button_handle_t btn_handle = iot_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL);
@@ -82,6 +93,11 @@ void app_driver_init()
     io_conf.pin_bit_mask = ((uint64_t)1 << OUTPUT_GPIO);
     /* Configure the GPIO */
     gpio_config(&io_conf);
+
+    /* Configure power for second switch */
+    io_conf.pin_bit_mask = ((uint64_t)1 << OUTPUT_GPIO2);
+    gpio_config(&io_conf);
+
     app_indicator_init();
 }
 
@@ -94,7 +110,23 @@ int IRAM_ATTR app_driver_set_state(bool state)
     return ESP_OK;
 }
 
+// New function to set state of second switch
+int IRAM_ATTR app_driver_set_state2(bool state)
+{
+    if(g_power_state2 != state) {
+        g_power_state2 = state;
+        set_power_state2(g_power_state2);
+    }
+    return ESP_OK;
+}
+
 bool app_driver_get_state(void)
 {
     return g_power_state;
+}
+
+// New function to get state of second switch
+bool app_driver_get_state2(void)
+{
+    return g_power_state2;
 }

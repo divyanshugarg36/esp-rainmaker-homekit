@@ -26,6 +26,7 @@
 static const char *TAG = "app_homekit";
 
 static hap_char_t *on_char;
+static hap_char_t *on_char2;  // New characteristic for second switch
 
 static void app_homekit_show_qr(void)
 {
@@ -67,6 +68,8 @@ static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
 static int switch_identify(hap_acc_t *ha)
 {
     bool cur_state = app_driver_get_state();
+    bool cur_state2 = app_driver_get_state2();  // Get state of second switch
+
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);
     app_indicator_set(cur_state);
@@ -74,6 +77,15 @@ static int switch_identify(hap_acc_t *ha)
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);
     app_indicator_set(cur_state);
+
+    app_indicator_set(!cur_state2);
+    vTaskDelay(500/portTICK_PERIOD_MS);
+    app_indicator_set(cur_state2);
+    vTaskDelay(500/portTICK_PERIOD_MS);
+    app_indicator_set(!cur_state2);
+    vTaskDelay(500/portTICK_PERIOD_MS);
+    app_indicator_set(cur_state2);
+
     ESP_LOGI(TAG, "Accessory identified");
     return HAP_SUCCESS;
 }
@@ -97,6 +109,18 @@ static int switch_write(hap_write_data_t write_data[], int count,
                 esp_rmaker_bool(write->val.b));
 
             *(write->status) = HAP_STATUS_SUCCESS;
+        }  else if (write->hc == on_char2) {
+                ESP_LOGI(TAG, "Received Write for Switch2. %s", write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state2(write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(switch_device2, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+
+                *(write->status) = HAP_STATUS_SUCCESS;
         } else {
             *(write->status) = HAP_STATUS_RES_ABSENT;
         }
@@ -112,10 +136,24 @@ esp_err_t app_homekit_update_state(bool state)
     hap_char_update_val(on_char, &new_value);
     return ESP_OK;
 }
+
+// New function to update state of second switch
+esp_err_t app_homekit_update_state2(bool state)
+{
+    hap_val_t new_value = {
+        .b = state,
+    };
+
+    hap_char_update_val(on_char2, &new_value);
+    return ESP_OK;
+}
+
 esp_err_t app_homekit_start(bool init_state)
 {
     hap_acc_t *accessory;
+    hap_acc_t *accessory2;  // Second accessory
     hap_serv_t *service;
+    hap_serv_t *service2;   // Second service
 
     /* Initialize the HAP core */
     hap_init(HAP_TRANSPORT_WIFI);
@@ -150,8 +188,38 @@ esp_err_t app_homekit_start(bool init_state)
     /* Add the Outlet Service to the Accessory Object */
     hap_acc_add_serv(accessory, service);
 
-    /* Add the Accessory to the HomeKit Database */
+ /* Create second accessory */
+    hap_acc_cfg_t cfg2 = {
+        .name = "Esp RainMaker Device Switch2",
+        .manufacturer = "Espressif",
+        .model = "homekit_switch2",
+        .serial_num = "001122334456",
+        .fw_rev = "1.0",
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = switch_identify,
+        .cid = HAP_CID_SWITCH,
+    };
+    accessory2 = hap_acc_create(&cfg2);
+
+    /* Create the second Outlet Service */
+    service2 = hap_serv_switch_create(init_state);
+    hap_serv_add_char(service2, hap_char_name_create("Switch2"));
+
+    /* Set the write callback for the second service */
+    hap_serv_set_write_cb(service2, switch_write);
+
+    /* Get pointer to the on_char for the second switch */
+    on_char2 = hap_serv_get_char_by_uuid(service2, HAP_CHAR_UUID_ON);
+
+    /* Add the second Outlet Service to the second Accessory Object */
+    hap_acc_add_serv(accessory2, service2);
+
+    /* Add both Accessories to the HomeKit Database */
     hap_add_accessory(accessory);
+
+    char accessory_name[12] = "ESP-Fan-1";
+    hap_add_bridged_accessory(accessory2, hap_get_unique_aid(accessory_name));
 
     /* For production accessories, the setup code shouldn't be programmed on to
      * the device. Instead, the setup info, derived from the setup code must

@@ -30,6 +30,7 @@
 
 static const char *TAG = "app_main";
 esp_rmaker_device_t *switch_device;
+esp_rmaker_device_t *switch_device2;  // New device for second switch
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -42,9 +43,17 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         ESP_LOGI(TAG, "Received value = %s for %s - %s",
                 val.val.b? "true" : "false", esp_rmaker_device_get_name(device),
                 esp_rmaker_param_get_name(param));
-        app_driver_set_state(val.val.b);
-        esp_rmaker_param_update(param, val);
-        app_homekit_update_state(val.val.b);
+        // Check which device the command is for
+        if (device == switch_device) {
+            app_driver_set_state(val.val.b);
+            esp_rmaker_param_update(param, val);
+            app_homekit_update_state(val.val.b);
+        } else if (device == switch_device2) {
+            app_driver_set_state2(val.val.b);
+            esp_rmaker_param_update(param, val);
+            // You might want to create a separate HomeKit update function for the second switch
+            // app_homekit_update_state2(val.val.b);
+        }
     }
     return ESP_OK;
 }
@@ -183,31 +192,39 @@ void app_main()
      * avoid writing code for adding the name and power parameters.
      */
     switch_device = esp_rmaker_device_create("Switch", ESP_RMAKER_DEVICE_SWITCH, NULL);
+    switch_device2 = esp_rmaker_device_create("Switch2", ESP_RMAKER_DEVICE_SWITCH, NULL);
 
     /* Add the write callback for the device. We aren't registering any read callback yet as
      * it is for future use.
      */
     esp_rmaker_device_add_cb(switch_device, write_cb, NULL);
+    esp_rmaker_device_add_cb(switch_device2, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
      * parameter.
      */
     esp_rmaker_device_add_param(switch_device, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Switch"));
+    esp_rmaker_device_add_param(switch_device2, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Switch2"));
 
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
      */
     esp_rmaker_param_t *power_param = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    
     esp_rmaker_device_add_param(switch_device, power_param);
+    esp_rmaker_device_add_param(switch_device2, power_param2);
 
     /* Assign the power parameter as the primary, so that it can be controlled from the
      * home screen of the phone apps.
      */
     esp_rmaker_device_assign_primary_param(switch_device, power_param);
+    esp_rmaker_device_assign_primary_param(switch_device2, power_param2);
 
     /* Add this switch device to the node */
     esp_rmaker_node_add_device(node, switch_device);
+    esp_rmaker_node_add_device(node, switch_device2);
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

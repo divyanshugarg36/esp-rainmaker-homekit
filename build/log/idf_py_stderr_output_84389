@@ -1,4 +1,0 @@
-CMake Error at CMakeLists.txt:6 (message):
-  Please set HOMEKIT_PATH to esp-homekit-sdk repo
-
-
