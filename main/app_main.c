@@ -298,9 +298,9 @@ void app_main()
     esp_rmaker_param_t *power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param4_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param4_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, 1);
     esp_rmaker_param_t *power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param5_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param5_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, 1);
     esp_rmaker_param_t *power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param7 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     
