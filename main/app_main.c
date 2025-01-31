@@ -28,9 +28,64 @@
 #include "app_wifi_with_homekit.h"
 #include "app_priv.h"
 
+#include "../components/rmaker_custom/custom_params.h"
+
 static const char *TAG = "app_main";
-esp_rmaker_device_t *switch_device;
-esp_rmaker_device_t *switch_device2;  // New device for second switch
+
+esp_rmaker_device_t *device1;
+esp_rmaker_device_t *device2;
+esp_rmaker_device_t *device3;
+esp_rmaker_device_t *device4;
+esp_rmaker_device_t *device5;
+esp_rmaker_device_t *device6;
+esp_rmaker_device_t *device7;
+
+
+typedef struct {
+    char *name;
+    int gpioNumber;
+} Switch;
+
+typedef struct {
+    Switch device1;
+    Switch device2;
+    Switch device3;
+    Switch device4;
+    Switch device5;
+    Switch device6;
+    Switch device7;
+} Devices;
+
+Devices deviceList = {
+    .device1 = {
+        .name = "Main Light",
+        .gpioNumber = 1
+    },
+    .device2 = {
+        .name = "Small Light 1",
+        .gpioNumber = 1
+    },
+    .device3 = {
+        .name = "Small Light 2",
+        .gpioNumber = 1
+    },
+    .device4 = {
+        .name = "Fan 1",
+        .gpioNumber = 1
+    },
+    .device5 = {
+        .name = "Fan 2",
+        .gpioNumber = 1
+    },
+    .device6 = {
+        .name = "Socket",
+        .gpioNumber = 1
+    },
+    .device7 = {
+        .name = "Ceiling Light",
+        .gpioNumber = 1
+    }
+};
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -44,15 +99,29 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
                 val.val.b? "true" : "false", esp_rmaker_device_get_name(device),
                 esp_rmaker_param_get_name(param));
         // Check which device the command is for
-        if (device == switch_device) {
+        if (device == device1) {
             app_driver_set_state(val.val.b);
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(val.val.b);
-        } else if (device == switch_device2) {
+        } else if (device == device2) {
             app_driver_set_state2(val.val.b);
             esp_rmaker_param_update(param, val);
-            // You might want to create a separate HomeKit update function for the second switch
-            // app_homekit_update_state2(val.val.b);
+        }
+         else if (device == device3) {
+            app_driver_set_state3(val.val.b);
+            esp_rmaker_param_update(param, val);
+        } else if (device == device4) {
+            app_driver_set_state4(val.val.b);
+            esp_rmaker_param_update(param, val);
+        } else if (device == device5) {
+            app_driver_set_state5(val.val.b);
+            esp_rmaker_param_update(param, val);
+        } else if (device == device6) {
+            app_driver_set_state6(val.val.b);
+            esp_rmaker_param_update(param, val);
+        } else if (device == device7) {
+            app_driver_set_state7(val.val.b);
+            esp_rmaker_param_update(param, val);
         }
     }
     return ESP_OK;
@@ -180,7 +249,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Switch");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "Garg's Home", "Main Hall");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -191,40 +260,79 @@ void app_main()
      * You can optionally use the helper API esp_rmaker_switch_device_create() to
      * avoid writing code for adding the name and power parameters.
      */
-    switch_device = esp_rmaker_device_create("Switch", ESP_RMAKER_DEVICE_SWITCH, NULL);
-    switch_device2 = esp_rmaker_device_create("Switch2", ESP_RMAKER_DEVICE_SWITCH, NULL);
+    device1 = esp_rmaker_device_create(deviceList.device1.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
+    device2 = esp_rmaker_device_create(deviceList.device2.name, ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
+    device3 = esp_rmaker_device_create(deviceList.device3.name, ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
+    device4 = esp_rmaker_device_create(deviceList.device4.name, ESP_RMAKER_DEVICE_FAN, NULL);
+    device5 = esp_rmaker_device_create(deviceList.device5.name, ESP_RMAKER_DEVICE_FAN, NULL);
+    device6 = esp_rmaker_device_create(deviceList.device6.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    device7 = esp_rmaker_device_create(deviceList.device7.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
 
     /* Add the write callback for the device. We aren't registering any read callback yet as
      * it is for future use.
      */
-    esp_rmaker_device_add_cb(switch_device, write_cb, NULL);
-    esp_rmaker_device_add_cb(switch_device2, write_cb, NULL);
+    esp_rmaker_device_add_cb(device1, write_cb, NULL);
+    esp_rmaker_device_add_cb(device2, write_cb, NULL);
+    esp_rmaker_device_add_cb(device3, write_cb, NULL);
+    esp_rmaker_device_add_cb(device4, write_cb, NULL);
+    esp_rmaker_device_add_cb(device5, write_cb, NULL);
+    esp_rmaker_device_add_cb(device6, write_cb, NULL);
+    esp_rmaker_device_add_cb(device7, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
      * parameter.
      */
-    esp_rmaker_device_add_param(switch_device, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Switch"));
-    esp_rmaker_device_add_param(switch_device2, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Switch2"));
+    esp_rmaker_device_add_param(device1, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device1.name));
+    esp_rmaker_device_add_param(device2, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device2.name));
+    esp_rmaker_device_add_param(device3, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device3.name));
+    esp_rmaker_device_add_param(device4, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device4.name));
+    esp_rmaker_device_add_param(device5, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device5.name));
+    esp_rmaker_device_add_param(device6, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device6.name));
+    esp_rmaker_device_add_param(device7, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device7.name));
 
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
      */
-    esp_rmaker_param_t *power_param = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param1 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param4_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param5_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    esp_rmaker_param_t *power_param7 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     
-    esp_rmaker_device_add_param(switch_device, power_param);
-    esp_rmaker_device_add_param(switch_device2, power_param2);
+    esp_rmaker_device_add_param(device1, power_param1);
+    esp_rmaker_device_add_param(device2, power_param2);
+    esp_rmaker_device_add_param(device3, power_param3);
+    esp_rmaker_device_add_param(device4, power_param4);
+    esp_rmaker_device_add_param(device4, power_param4_1);
+    esp_rmaker_device_add_param(device5, power_param5);
+    esp_rmaker_device_add_param(device5, power_param5_1);
+    esp_rmaker_device_add_param(device6, power_param6);
+    esp_rmaker_device_add_param(device7, power_param7);
 
     /* Assign the power parameter as the primary, so that it can be controlled from the
      * home screen of the phone apps.
      */
-    esp_rmaker_device_assign_primary_param(switch_device, power_param);
-    esp_rmaker_device_assign_primary_param(switch_device2, power_param2);
+    esp_rmaker_device_assign_primary_param(device1, power_param1);
+    esp_rmaker_device_assign_primary_param(device2, power_param2);
+    esp_rmaker_device_assign_primary_param(device3, power_param3);
+    esp_rmaker_device_assign_primary_param(device4, power_param4);
+    esp_rmaker_device_assign_primary_param(device5, power_param5);
+    esp_rmaker_device_assign_primary_param(device6, power_param6);
+    esp_rmaker_device_assign_primary_param(device7, power_param7);
 
     /* Add this switch device to the node */
-    esp_rmaker_node_add_device(node, switch_device);
-    esp_rmaker_node_add_device(node, switch_device2);
+    esp_rmaker_node_add_device(node, device1);
+    esp_rmaker_node_add_device(node, device2);
+    esp_rmaker_node_add_device(node, device3);
+    esp_rmaker_node_add_device(node, device4);
+    esp_rmaker_node_add_device(node, device5);
+    esp_rmaker_node_add_device(node, device6);
+    esp_rmaker_node_add_device(node, device7);
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

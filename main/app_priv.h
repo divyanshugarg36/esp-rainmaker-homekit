@@ -9,14 +9,24 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define DEFAULT_POWER  true
-extern esp_rmaker_device_t *switch_device;
-extern esp_rmaker_device_t *switch_device2;
+#define DEFAULT_POWER false
+extern esp_rmaker_device_t *device1;
+extern esp_rmaker_device_t *device2;
 void app_indicator_set(bool state);
 void app_driver_init(void);
 int app_driver_set_state(bool state);
-int app_driver_set_state2(bool state);  // New function declaration
+int app_driver_set_state2(bool state);
+int app_driver_set_state3(bool state);
+int app_driver_set_state4(bool state);
+int app_driver_set_state5(bool state);
+int app_driver_set_state6(bool state);
+int app_driver_set_state7(bool state);
 bool app_driver_get_state(void);
-bool app_driver_get_state2(void);  // New function declaration
+bool app_driver_get_state2(void);
+bool app_driver_get_state3(void);
+bool app_driver_get_state4(void);
+bool app_driver_get_state5(void);
+bool app_driver_get_state6(void);
+bool app_driver_get_state7(void);
 esp_err_t app_homekit_start(bool init_state);
 esp_err_t app_homekit_update_state(bool state);

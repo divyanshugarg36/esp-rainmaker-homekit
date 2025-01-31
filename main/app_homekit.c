@@ -26,29 +26,77 @@
 static const char *TAG = "app_homekit";
 
 static hap_char_t *on_char;
-static hap_char_t *on_char2;  // New characteristic for second switch
 
-static void app_homekit_show_qr(void)
-{
-#ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
+#define NUM_BRIDGED_ACCESSORIES 3
 #define QRCODE_BASE_URL     "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
-    char *setup_payload =  esp_hap_get_setup_payload(CONFIG_EXAMPLE_SETUP_CODE,
-            CONFIG_EXAMPLE_SETUP_ID, false, HAP_CID_SWITCH);
-    if (setup_payload) {
-        printf("-----QR Code for HomeKit-----\n");
-        printf("Scan this QR code from the Home app on iOS\n");
-        qrcode_display(setup_payload);
-        printf("If QR code is not visible, copy paste the below URL in a browser.\n%s?data=%s\n",
-                QRCODE_BASE_URL, setup_payload);
-        free(setup_payload);
-    }
-#else
-    ESP_LOGW(TAG, "Cannot show QR code for HomeKit pairing as the raw setup code is not available.");
-#endif
+
+static void app_homekit_show_qr(void) {
+    #ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
+        char *setup_payload =  esp_hap_get_setup_payload(CONFIG_EXAMPLE_SETUP_CODE,
+                CONFIG_EXAMPLE_SETUP_ID, false, HAP_CID_SWITCH);
+        if (setup_payload) {
+            printf("-----QR Code for HomeKit-----\n");
+            printf("Scan this QR code from the Home app on iOS\n");
+            qrcode_display(setup_payload);
+            printf("If QR code is not visible, copy paste the below URL in a browser.\n%s?data=%s\n",
+                    QRCODE_BASE_URL, setup_payload);
+            free(setup_payload);
+        }
+    #else
+        ESP_LOGW(TAG, "Cannot show QR code for HomeKit pairing as the raw setup code is not available.");
+    #endif
 }
+
+/* Mandatory identify routine for the bridged accessory
+ * In a real bridge, the actual accessory must be sent some request to
+ * identify itself visually
+ */
+static int accessory_identify(hap_acc_t *ha) {
+    hap_serv_t *hs = hap_acc_get_serv_by_uuid(ha, HAP_SERV_UUID_ACCESSORY_INFORMATION);
+    hap_char_t *hc = hap_serv_get_char_by_uuid(hs, HAP_CHAR_UUID_NAME);
+    const hap_val_t *val = hap_char_get_val(hc);
+    char *name = val->s;
+
+    ESP_LOGI(TAG, "Bridged Accessory %s identified", name);
+    return HAP_SUCCESS;
+}
+
+/* A dummy callback for handling a write on the "On" characteristic of Fan.
+ * In an actual accessory, this should control the hardware
+ */
+static int fan_on(bool value) {
+    ESP_LOGI(TAG, "Received Write. Fan %s", value ? "On" : "Off");
+    printf("Received Write. Fan %s", value ? "On" : "Off");
+    /* TODO: Control Actual Hardware */
+    return 0;
+}
+
+
+/* A dummy callback for handling a write on the "On" characteristic of Fan.
+ * In an actual accessory, this should control the hardware
+ */
+static int fan_write(hap_write_data_t write_data[], int count,
+        void *serv_priv, void *write_priv) {
+    ESP_LOGI(TAG, "Write called for Accessory %s", (char *)serv_priv);
+    int i, ret = HAP_SUCCESS;
+    hap_write_data_t *write;
+    for (i = 0; i < count; i++) {
+        write = &write_data[i];
+        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+            fan_on(write->val.b);
+            hap_char_update_val(write->hc, &(write->val));
+            *(write->status) = HAP_STATUS_SUCCESS;
+        } else {
+            *(write->status) = HAP_STATUS_RES_ABSENT;
+        }
+    }
+    return ret;
+}
+
+
+
 static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
-                          int32_t event_id, void* event_data)
-{
+                          int32_t event_id, void* event_data) {
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         if (hap_get_paired_controller_count() == 0) {
             app_homekit_show_qr();
@@ -65,11 +113,8 @@ static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
  * In a real accessory, something like LED blink should be implemented
  * got visual identification
  */
-static int switch_identify(hap_acc_t *ha)
-{
+static int switch_identify(hap_acc_t *ha) {
     bool cur_state = app_driver_get_state();
-    bool cur_state2 = app_driver_get_state2();  // Get state of second switch
-
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);
     app_indicator_set(cur_state);
@@ -77,15 +122,6 @@ static int switch_identify(hap_acc_t *ha)
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);
     app_indicator_set(cur_state);
-
-    app_indicator_set(!cur_state2);
-    vTaskDelay(500/portTICK_PERIOD_MS);
-    app_indicator_set(cur_state2);
-    vTaskDelay(500/portTICK_PERIOD_MS);
-    app_indicator_set(!cur_state2);
-    vTaskDelay(500/portTICK_PERIOD_MS);
-    app_indicator_set(cur_state2);
-
     ESP_LOGI(TAG, "Accessory identified");
     return HAP_SUCCESS;
 }
@@ -105,22 +141,10 @@ static int switch_write(hap_write_data_t write_data[], int count,
             hap_char_update_val(write->hc, &(write->val));
             /* Report to RainMaker */
             esp_rmaker_param_update_and_report(
-                esp_rmaker_device_get_param_by_name(switch_device, ESP_RMAKER_DEF_POWER_NAME),
+                esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
                 esp_rmaker_bool(write->val.b));
 
             *(write->status) = HAP_STATUS_SUCCESS;
-        }  else if (write->hc == on_char2) {
-                ESP_LOGI(TAG, "Received Write for Switch2. %s", write->val.b ? "On" : "Off");
-                /* Set the switch state */
-                app_driver_set_state2(write->val.b);
-                /* Update the HomeKit characteristic */
-                hap_char_update_val(write->hc, &(write->val));
-                /* Report to RainMaker */
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(switch_device2, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(write->val.b));
-
-                *(write->status) = HAP_STATUS_SUCCESS;
         } else {
             *(write->status) = HAP_STATUS_RES_ABSENT;
         }
@@ -136,24 +160,10 @@ esp_err_t app_homekit_update_state(bool state)
     hap_char_update_val(on_char, &new_value);
     return ESP_OK;
 }
-
-// New function to update state of second switch
-esp_err_t app_homekit_update_state2(bool state)
-{
-    hap_val_t new_value = {
-        .b = state,
-    };
-
-    hap_char_update_val(on_char2, &new_value);
-    return ESP_OK;
-}
-
 esp_err_t app_homekit_start(bool init_state)
 {
     hap_acc_t *accessory;
-    hap_acc_t *accessory2;  // Second accessory
     hap_serv_t *service;
-    hap_serv_t *service2;   // Second service
 
     /* Initialize the HAP core */
     hap_init(HAP_TRANSPORT_WIFI);
@@ -188,38 +198,58 @@ esp_err_t app_homekit_start(bool init_state)
     /* Add the Outlet Service to the Accessory Object */
     hap_acc_add_serv(accessory, service);
 
- /* Create second accessory */
-    hap_acc_cfg_t cfg2 = {
-        .name = "Esp RainMaker Device Switch2",
-        .manufacturer = "Espressif",
-        .model = "homekit_switch2",
-        .serial_num = "001122334456",
-        .fw_rev = "1.0",
-        .hw_rev = NULL,
-        .pv = "1.1.0",
-        .identify_routine = switch_identify,
-        .cid = HAP_CID_SWITCH,
-    };
-    accessory2 = hap_acc_create(&cfg2);
-
-    /* Create the second Outlet Service */
-    service2 = hap_serv_switch_create(init_state);
-    hap_serv_add_char(service2, hap_char_name_create("Switch2"));
-
-    /* Set the write callback for the second service */
-    hap_serv_set_write_cb(service2, switch_write);
-
-    /* Get pointer to the on_char for the second switch */
-    on_char2 = hap_serv_get_char_by_uuid(service2, HAP_CHAR_UUID_ON);
-
-    /* Add the second Outlet Service to the second Accessory Object */
-    hap_acc_add_serv(accessory2, service2);
-
-    /* Add both Accessories to the HomeKit Database */
+    /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
 
-    char accessory_name[12] = "ESP-Fan-1";
-    hap_add_bridged_accessory(accessory2, hap_get_unique_aid(accessory_name));
+
+
+
+
+  for (uint8_t i = 0; i < NUM_BRIDGED_ACCESSORIES; i++) {
+        char accessory_name[12] = {0};
+        sprintf(accessory_name, "ESP-Fan-%d", i);
+
+        hap_acc_cfg_t bridge_cfg = {
+            .name = accessory_name,
+            .manufacturer = "Espressif",
+            .model = "EspFan01",
+            .serial_num = "abcdefg",
+            .fw_rev = "0.9.0",
+            .hw_rev = NULL,
+            .pv = "1.1.0",
+            .identify_routine = accessory_identify,
+            .cid = HAP_CID_BRIDGE,
+        };
+        /* Create accessory object */
+        accessory = hap_acc_create(&bridge_cfg);
+
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = hap_serv_fan_create(false);
+        hap_serv_add_char(service, hap_char_name_create(accessory_name));
+
+        /* Set the Accessory name as the Private data for the service,
+         * so that the correct accessory can be identified in the
+         * write callback
+         */
+        hap_serv_set_priv(service, strdup(accessory_name));
+
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, fan_write);
+ 
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(accessory_name));
+    }
+
+
+
+
+
+
+
+
 
     /* For production accessories, the setup code shouldn't be programmed on to
      * the device. Instead, the setup info, derived from the setup code must
