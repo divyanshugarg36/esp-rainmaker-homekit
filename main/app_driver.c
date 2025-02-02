@@ -38,7 +38,7 @@ static void push_btn_cb(void *arg)
     esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(new_state));
-    app_homekit_update_state(new_state);
+    app_homekit_update_state(deviceList.device1.id, new_state);
 }
 
 static void set_power_state(int gpioPin, bool target)
