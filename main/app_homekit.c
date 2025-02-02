@@ -214,24 +214,6 @@ static int homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device7.name) == 0) {
-        for (i = 0; i < count; i++) {
-            write = &write_data[i];
-            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
-                /* Set the switch state */
-                app_driver_set_state(deviceList.device7.id, write->val.b);
-                /* Update the HomeKit characteristic */
-                hap_char_update_val(write->hc, &(write->val));
-                /* Report to RainMaker */
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device7, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(write->val.b));
-                *(write->status) = HAP_STATUS_SUCCESS;
-            } else {
-                *(write->status) = HAP_STATUS_RES_ABSENT;
-            }
-        }
     }
     return ret;
 }
@@ -259,9 +241,6 @@ esp_err_t app_homekit_update_state(int deviceId, bool state)
         break;
     case DEVICE_6_ID:
         hap_char_update_val(device6_char, &new_value);
-        break;
-    case DEVICE_7_ID:
-        hap_char_update_val(device7_char, &new_value);
         break;
     default:
         return ESP_FAIL;

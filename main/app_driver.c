@@ -116,12 +116,6 @@ int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
                 set_power_state(DEVICE_6_OUTPUT_GPIO, g_power_state6);
             }
             return ESP_OK;
-        case DEVICE_7_OUTPUT_GPIO:
-            if(g_power_state7 != state) {
-                g_power_state7 = state;
-                set_power_state(DEVICE_7_OUTPUT_GPIO, g_power_state7);
-            }
-            return ESP_OK;
         default:
             return ESP_FAIL;
     }
@@ -143,8 +137,6 @@ bool app_driver_get_state(int deviceId) {
         return g_power_state5;
     case DEVICE_6_ID:
         return g_power_state6;
-    case DEVICE_7_ID:
-        return g_power_state7;
     default:
         return false;
     }

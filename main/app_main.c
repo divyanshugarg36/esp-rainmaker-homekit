@@ -41,7 +41,6 @@ esp_rmaker_device_t *device3;
 esp_rmaker_device_t *device4;
 esp_rmaker_device_t *device5;
 esp_rmaker_device_t *device6;
-esp_rmaker_device_t *device7;
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -79,10 +78,6 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
             app_driver_set_state(deviceList.device6.id, val.val.b);
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(deviceList.device6.id, val.val.b);
-        } else if (device == device7) {
-            app_driver_set_state(deviceList.device7.id, val.val.b);
-            esp_rmaker_param_update(param, val);
-            app_homekit_update_state(deviceList.device7.id, val.val.b);
         }
     }
     return ESP_OK;
@@ -227,7 +222,6 @@ void app_main()
     device4 = esp_rmaker_device_create(deviceList.device4.name, ESP_RMAKER_DEVICE_FAN, NULL);
     device5 = esp_rmaker_device_create(deviceList.device5.name, ESP_RMAKER_DEVICE_FAN, NULL);
     device6 = esp_rmaker_device_create(deviceList.device6.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
-    device7 = esp_rmaker_device_create(deviceList.device7.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
 
     /* Add the write callback for the device. We aren't registering any read callback yet as
      * it is for future use.
@@ -238,7 +232,6 @@ void app_main()
     esp_rmaker_device_add_cb(device4, write_cb, NULL);
     esp_rmaker_device_add_cb(device5, write_cb, NULL);
     esp_rmaker_device_add_cb(device6, write_cb, NULL);
-    esp_rmaker_device_add_cb(device7, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
@@ -250,7 +243,6 @@ void app_main()
     esp_rmaker_device_add_param(device4, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device4.name));
     esp_rmaker_device_add_param(device5, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device5.name));
     esp_rmaker_device_add_param(device6, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device6.name));
-    esp_rmaker_device_add_param(device7, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device7.name));
 
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
@@ -259,21 +251,15 @@ void app_main()
     esp_rmaker_param_t *power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     esp_rmaker_param_t *power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param4_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, 1);
     esp_rmaker_param_t *power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param5_1 = esp_rmaker_custom_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, 1);
     esp_rmaker_param_t *power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param7 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
     
     esp_rmaker_device_add_param(device1, power_param1);
     esp_rmaker_device_add_param(device2, power_param2);
     esp_rmaker_device_add_param(device3, power_param3);
     esp_rmaker_device_add_param(device4, power_param4);
-    esp_rmaker_device_add_param(device4, power_param4_1);
     esp_rmaker_device_add_param(device5, power_param5);
-    esp_rmaker_device_add_param(device5, power_param5_1);
     esp_rmaker_device_add_param(device6, power_param6);
-    esp_rmaker_device_add_param(device7, power_param7);
 
     /* Assign the power parameter as the primary, so that it can be controlled from the
      * home screen of the phone apps.
@@ -284,7 +270,6 @@ void app_main()
     esp_rmaker_device_assign_primary_param(device4, power_param4);
     esp_rmaker_device_assign_primary_param(device5, power_param5);
     esp_rmaker_device_assign_primary_param(device6, power_param6);
-    esp_rmaker_device_assign_primary_param(device7, power_param7);
 
     /* Add this switch device to the node */
     esp_rmaker_node_add_device(node, device1);
@@ -293,7 +278,6 @@ void app_main()
     esp_rmaker_node_add_device(node, device4);
     esp_rmaker_node_add_device(node, device5);
     esp_rmaker_node_add_device(node, device6);
-    esp_rmaker_node_add_device(node, device7);
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

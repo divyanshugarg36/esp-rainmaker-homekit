@@ -22,7 +22,6 @@ extern esp_rmaker_device_t *device3;
 extern esp_rmaker_device_t *device4;
 extern esp_rmaker_device_t *device5;
 extern esp_rmaker_device_t *device6;
-extern esp_rmaker_device_t *device7;
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
@@ -35,7 +34,6 @@ extern esp_rmaker_device_t *device7;
 #define DEVICE_4_ID   4
 #define DEVICE_5_ID   5
 #define DEVICE_6_ID   6
-#define DEVICE_7_ID   7
 
 /* This is the GPIO on which the power will be set */
 #define DEVICE_1_OUTPUT_GPIO   17
@@ -44,7 +42,6 @@ extern esp_rmaker_device_t *device7;
 #define DEVICE_4_OUTPUT_GPIO   14
 #define DEVICE_5_OUTPUT_GPIO   13
 #define DEVICE_6_OUTPUT_GPIO   12
-#define DEVICE_7_OUTPUT_GPIO   10
 
 static bool g_power_state1 = DEFAULT_POWER;
 static bool g_power_state2 = DEFAULT_POWER;
@@ -52,7 +49,6 @@ static bool g_power_state3 = DEFAULT_POWER;
 static bool g_power_state4 = DEFAULT_POWER;
 static bool g_power_state5 = DEFAULT_POWER;
 static bool g_power_state6 = DEFAULT_POWER;
-static bool g_power_state7 = DEFAULT_POWER;
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -108,11 +104,6 @@ static const Devices deviceList = {
         .id = DEVICE_6_ID,
         .name = "Socket",
         .gpio = DEVICE_6_OUTPUT_GPIO
-    },
-    .device7 = {
-        .id = DEVICE_7_ID,
-        .name = "Ceiling Light",
-        .gpio = DEVICE_7_OUTPUT_GPIO
     }
 };
 
