@@ -124,5 +124,4 @@ int app_driver_set_state(int deviceId, bool state);
 bool app_driver_get_state(int deviceId);
 
 esp_err_t app_homekit_start(bool init_state);
-esp_err_t app_homekit_update_state(bool state);
-esp_err_t app_homekit_update_state2(bool state);
+esp_err_t app_homekit_update_state(int deviceId, bool state);

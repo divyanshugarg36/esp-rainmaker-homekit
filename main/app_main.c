@@ -58,27 +58,31 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         if (device == device1) {
             app_driver_set_state(deviceList.device1.id, val.val.b);
             esp_rmaker_param_update(param, val);
-            app_homekit_update_state(val.val.b);
+            app_homekit_update_state(deviceList.device1.id, val.val.b);
         } else if (device == device2) {
             app_driver_set_state(deviceList.device2.id, val.val.b);
             esp_rmaker_param_update(param, val);
-            app_homekit_update_state2(val.val.b);
-        }
-         else if (device == device3) {
+            app_homekit_update_state(deviceList.device2.id, val.val.b);
+        } else if (device == device3) {
             app_driver_set_state(deviceList.device3.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device3.id, val.val.b);
         } else if (device == device4) {
             app_driver_set_state(deviceList.device4.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device4.id, val.val.b);
         } else if (device == device5) {
             app_driver_set_state(deviceList.device5.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device5.id, val.val.b);
         } else if (device == device6) {
             app_driver_set_state(deviceList.device6.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device6.id, val.val.b);
         } else if (device == device7) {
             app_driver_set_state(deviceList.device7.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device7.id, val.val.b);
         }
     }
     return ESP_OK;

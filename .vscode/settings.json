@@ -22,6 +22,7 @@
         "thinary_aht10.h": "c",
         "hap_apple_servs.h": "c",
         "tm1637.h": "c",
-        "ets_sys.h": "c"
+        "ets_sys.h": "c",
+        "app_insights.h": "c"
     }
 }

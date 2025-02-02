@@ -235,23 +235,39 @@ static int homekit_write(hap_write_data_t write_data[], int count,
     }
     return ret;
 }
-esp_err_t app_homekit_update_state(bool state)
+
+esp_err_t app_homekit_update_state(int deviceId, bool state)
 {
     hap_val_t new_value = {
         .b = state,
     };
-
-    hap_char_update_val(device1_char, &new_value);
-    return ESP_OK;
-}
-
-esp_err_t app_homekit_update_state2(bool state)
-{
-    hap_val_t new_value = {
-        .b = state,
-    };
-    hap_char_update_val(device2_char, &new_value);
-    return ESP_OK;
+    switch (deviceId) {
+    case DEVICE_1_ID:
+        hap_char_update_val(device1_char, &new_value);
+        break;
+    case DEVICE_2_ID:
+        hap_char_update_val(device2_char, &new_value);
+        break;
+    case DEVICE_3_ID:
+        hap_char_update_val(device3_char, &new_value);
+        break;
+    case DEVICE_4_ID:
+        hap_char_update_val(device4_char, &new_value);
+        break;
+    case DEVICE_5_ID:
+        hap_char_update_val(device5_char, &new_value);
+        break;
+    case DEVICE_6_ID:
+        hap_char_update_val(device6_char, &new_value);
+        break;
+    case DEVICE_7_ID:
+        hap_char_update_val(device7_char, &new_value);
+        break;
+    default:
+        return ESP_FAIL;
+        break;
+    }
+        return ESP_OK;
 }
 
 esp_err_t app_homekit_start(bool init_state)
