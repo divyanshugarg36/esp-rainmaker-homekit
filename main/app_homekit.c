@@ -33,7 +33,7 @@ static hap_char_t *device5_char;
 static hap_char_t *device6_char;
 static hap_char_t *device7_char;
 
-#define QRCODE_BASE_URL     "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
+#define QRCODE_BASE_URL  "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
 
 static void app_homekit_show_qr(void) {
     #ifdef CONFIG_EXAMPLE_USE_HARDCODED_SETUP_CODE
@@ -66,46 +66,6 @@ static int accessory_identify(hap_acc_t *ha) {
     return HAP_SUCCESS;
 }
 
-/* A dummy callback for handling a write on the "On" characteristic of Fan.
- * In an actual accessory, this should control the hardware
- */
-static int fan_on(bool value) {
-    ESP_LOGI(TAG, "Received Write. Fan %s", value ? "On" : "Off");
-    printf("Received Write. Fan %s", value ? "On" : "Off");
-    /* TODO: Control Actual Hardware */
-    return 0;
-}
-
-
-/* A dummy callback for handling a write on the "On" characteristic of Fan.
- * In an actual accessory, this should control the hardware
- */
-static int fan_write(hap_write_data_t write_data[], int count,
-        void *serv_priv, void *write_priv) {
-    ESP_LOGI(TAG, "Write called for Accessory %s", (char *)serv_priv);
-    int i, ret = HAP_SUCCESS;
-    hap_write_data_t *write;
-    for (i = 0; i < count; i++) {
-        write = &write_data[i];
-        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-            fan_on(write->val.b);
-            hap_char_update_val(write->hc, &(write->val));
-
-            esp_rmaker_param_update_and_report(
-                esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
-                esp_rmaker_bool(write->val.b)
-            );
-
-            *(write->status) = HAP_STATUS_SUCCESS;
-        } else {
-            *(write->status) = HAP_STATUS_RES_ABSENT;
-        }
-    }
-    return ret;
-}
-
-
-
 static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data) {
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
@@ -137,27 +97,140 @@ static int switch_identify(hap_acc_t *ha) {
     return HAP_SUCCESS;
 }
 
-static int switch_write(hap_write_data_t write_data[], int count,
+static int homekit_write(hap_write_data_t write_data[], int count,
         void *serv_priv, void *write_priv)
 {
     int i, ret = HAP_SUCCESS;
     hap_write_data_t *write;
-    for (i = 0; i < count; i++) {
-        write = &write_data[i];
-        if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-            ESP_LOGI(TAG, "Received Write. Switch %s", write->val.b ? "On" : "Off");
-            /* Set the switch state */
-            app_driver_set_state(deviceList.device1.id, write->val.b);
-            /* Update the HomeKit characteristic */
-            hap_char_update_val(write->hc, &(write->val));
-            /* Report to RainMaker */
-            esp_rmaker_param_update_and_report(
-                esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
-                esp_rmaker_bool(write->val.b));
+    char *deviceName = (char *)serv_priv;
+    printf("Write called for Accessory %s\n", deviceName);
+    if (strcmp(deviceName, deviceList.device1.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device1.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
 
-            *(write->status) = HAP_STATUS_SUCCESS;
-        } else {
-            *(write->status) = HAP_STATUS_RES_ABSENT;
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        }
+    } else if (strcmp(deviceName, deviceList.device2.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device2.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        }
+    } else if (strcmp(deviceName, deviceList.device3.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device3.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        }
+    } else if (strcmp(deviceName, deviceList.device4.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */   
+                app_driver_set_state(deviceList.device4.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        } 
+    } else if (strcmp(deviceName, deviceList.device5.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device5.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        }
+    } else if (strcmp(deviceName, deviceList.device6.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device6.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
+        }
+    } else if (strcmp(deviceName, deviceList.device7.name) == 0) {
+        for (i = 0; i < count; i++) {
+            write = &write_data[i];
+            if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
+                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                /* Set the switch state */
+                app_driver_set_state(deviceList.device7.id, write->val.b);
+                /* Update the HomeKit characteristic */
+                hap_char_update_val(write->hc, &(write->val));
+                /* Report to RainMaker */
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device7, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(write->val.b));
+                *(write->status) = HAP_STATUS_SUCCESS;
+            } else {
+                *(write->status) = HAP_STATUS_RES_ABSENT;
+            }
         }
     }
     return ret;
@@ -215,7 +288,7 @@ esp_err_t app_homekit_start(bool init_state)
      */
     hap_serv_set_priv(service, strdup(deviceList.device1.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, switch_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device1_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Outlet Service to the Accessory Object */
@@ -250,7 +323,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device2.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device2_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
@@ -284,7 +357,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device3.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device3_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
@@ -319,7 +392,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device4.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device4_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
@@ -354,7 +427,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device5.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device5_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
@@ -389,7 +462,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device6.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device6_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
@@ -422,7 +495,7 @@ esp_err_t app_homekit_start(bool init_state)
         */
     hap_serv_set_priv(service, strdup(deviceList.device7.name));
     /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, fan_write);
+    hap_serv_set_write_cb(service, homekit_write);
     /* Get pointer to the on_char to be used during update */
     device7_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Fan Service to the Accessory Object */
