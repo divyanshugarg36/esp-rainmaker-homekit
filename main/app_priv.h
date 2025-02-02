@@ -16,6 +16,8 @@
 
 #define DEFAULT_POWER false
 
+extern QueueHandle_t gpio_input_evt_queue;
+
 extern esp_rmaker_device_t *device1;
 extern esp_rmaker_device_t *device2;
 extern esp_rmaker_device_t *device3;
@@ -43,12 +45,24 @@ extern esp_rmaker_device_t *device6;
 #define DEVICE_5_OUTPUT_GPIO   13
 #define DEVICE_6_OUTPUT_GPIO   12
 
-static bool g_power_state1 = DEFAULT_POWER;
-static bool g_power_state2 = DEFAULT_POWER;
-static bool g_power_state3 = DEFAULT_POWER;
-static bool g_power_state4 = DEFAULT_POWER;
-static bool g_power_state5 = DEFAULT_POWER;
-static bool g_power_state6 = DEFAULT_POWER;
+#define DEVICE_1_INPUT_GPIO   26
+#define DEVICE_2_INPUT_GPIO   27
+#define DEVICE_3_INPUT_GPIO   25
+#define DEVICE_4_INPUT_GPIO   23
+#define DEVICE_5_INPUT_GPIO   33
+#define DEVICE_6_INPUT_GPIO   32
+
+#define GPIO_INPUT_PIN_SEL  ((1ULL<<DEVICE_1_INPUT_GPIO) | (1ULL<<DEVICE_2_INPUT_GPIO) | (1ULL<<DEVICE_3_INPUT_GPIO) | (1ULL<<DEVICE_4_INPUT_GPIO) | (1ULL<<DEVICE_5_INPUT_GPIO) | (1ULL<<DEVICE_6_INPUT_GPIO))
+
+void gpio_input_task(void* arg);
+void app_input_driver_init();
+
+extern bool g_power_state1;
+extern bool g_power_state2;
+extern bool g_power_state3;
+extern bool g_power_state4;
+extern bool g_power_state5;
+extern bool g_power_state6;
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -62,6 +76,7 @@ typedef struct {
    int id;
    char *name;
    int gpio;
+   int gpioIn;
 } Switch;
 
 typedef struct {
@@ -78,32 +93,38 @@ static const Devices deviceList = {
     .device1 = {
         .id = DEVICE_1_ID,
         .name = "Main Light",
-        .gpio = DEVICE_1_OUTPUT_GPIO
+        .gpio = DEVICE_1_OUTPUT_GPIO,
+        .gpioIn = DEVICE_1_INPUT_GPIO
     },
     .device2 = {
         .id = DEVICE_2_ID,
         .name = "Small Light 1",
-        .gpio = DEVICE_2_OUTPUT_GPIO
+        .gpio = DEVICE_2_OUTPUT_GPIO,
+        .gpioIn = DEVICE_2_INPUT_GPIO
     },
     .device3 = {
         .id = DEVICE_3_ID,
         .name = "Small Light 2",
-        .gpio = DEVICE_3_OUTPUT_GPIO
+        .gpio = DEVICE_3_OUTPUT_GPIO,
+        .gpioIn = DEVICE_3_INPUT_GPIO
     },
     .device4 = {
         .id = DEVICE_4_ID,
         .name = "Fan 1",
-        .gpio = DEVICE_4_OUTPUT_GPIO
+        .gpio = DEVICE_4_OUTPUT_GPIO,
+        .gpioIn = DEVICE_4_INPUT_GPIO
     },
     .device5 = {
         .id = DEVICE_5_ID,
         .name = "Fan 2",
-        .gpio = DEVICE_5_OUTPUT_GPIO
+        .gpio = DEVICE_5_OUTPUT_GPIO,
+        .gpioIn = DEVICE_5_INPUT_GPIO
     },
     .device6 = {
         .id = DEVICE_6_ID,
         .name = "Socket",
-        .gpio = DEVICE_6_OUTPUT_GPIO
+        .gpio = DEVICE_6_OUTPUT_GPIO,
+        .gpioIn = DEVICE_6_INPUT_GPIO
     }
 };
 
@@ -114,5 +135,5 @@ int app_driver_set_state(int deviceId, bool state);
 
 bool app_driver_get_state(int deviceId);
 
-esp_err_t app_homekit_start(bool init_state);
+esp_err_t app_homekit_start();
 esp_err_t app_homekit_update_state(int deviceId, bool state);

@@ -14,6 +14,7 @@
 #include <esp_log.h>
 #include <esp_event.h>
 #include <nvs_flash.h>
+#include <driver/gpio.h>
 
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_types.h>
@@ -35,12 +36,92 @@
 
 static const char *TAG = "app_main";
 
+bool g_power_state1 = DEFAULT_POWER;
+bool g_power_state2 = DEFAULT_POWER;
+bool g_power_state3 = DEFAULT_POWER;
+bool g_power_state4 = DEFAULT_POWER;
+bool g_power_state5 = DEFAULT_POWER;
+bool g_power_state6 = DEFAULT_POWER;
+
 esp_rmaker_device_t *device1;
 esp_rmaker_device_t *device2;
 esp_rmaker_device_t *device3;
 esp_rmaker_device_t *device4;
 esp_rmaker_device_t *device5;
 esp_rmaker_device_t *device6;
+esp_rmaker_param_t *power_param1;
+esp_rmaker_param_t *power_param2;
+esp_rmaker_param_t *power_param3;
+esp_rmaker_param_t *power_param4;
+esp_rmaker_param_t *power_param5;
+esp_rmaker_param_t *power_param6;
+
+QueueHandle_t gpio_input_evt_queue = NULL;
+
+void gpio_input_task(void* arg)
+{
+    uint32_t io_num;
+    for (;;) {
+        if (xQueueReceive(gpio_input_evt_queue, &io_num, portMAX_DELAY)) {
+            int val = !gpio_get_level(io_num);
+            switch (io_num)
+            {
+            case DEVICE_1_INPUT_GPIO:
+                app_driver_set_state(deviceList.device1.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val));
+                app_homekit_update_state(deviceList.device1.id, val);
+                break;
+            case DEVICE_2_INPUT_GPIO:
+                app_driver_set_state(deviceList.device2.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val)
+                );
+                app_homekit_update_state(deviceList.device2.id, val);
+                break;
+            case DEVICE_3_INPUT_GPIO:
+                app_driver_set_state(deviceList.device3.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val)
+                );
+                app_homekit_update_state(deviceList.device3.id, val);
+                break;
+            case DEVICE_4_INPUT_GPIO:
+                app_driver_set_state(deviceList.device4.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val)
+                );
+                app_homekit_update_state(deviceList.device4.id, val);
+                break;
+            case DEVICE_5_INPUT_GPIO:
+                app_driver_set_state(deviceList.device5.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val)
+                );
+                app_homekit_update_state(deviceList.device5.id, val);
+                break;
+            case DEVICE_6_INPUT_GPIO:
+                app_driver_set_state(deviceList.device6.id, val);
+                esp_rmaker_param_update_and_report(
+                    esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
+                    esp_rmaker_bool(val)
+                );
+                app_homekit_update_state(deviceList.device6.id, val);
+                break;
+            default:
+                break;
+            }
+            printf("GPIO[%"PRIu32"] intr, val: %d\n", io_num, gpio_get_level(io_num));
+            printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
+            vTaskDelay(pdMS_TO_TICKS(500));
+        }
+    }
+}
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -180,8 +261,12 @@ void app_main()
      */
     esp_rmaker_console_init();
     app_driver_init();
-    app_driver_set_state(DEVICE_1_OUTPUT_GPIO, DEFAULT_POWER);
-
+    
+    // This method will read initial state of the devices from Input GPIOs
+    // it won't call rmaker and hma methods since they havent been initialized
+    // But they will set the default state which further activates the devices
+    app_input_driver_init();
+    
     /* Initialize NVS. */
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -247,12 +332,12 @@ void app_main()
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
      */
-    esp_rmaker_param_t *power_param1 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
-    esp_rmaker_param_t *power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, DEFAULT_POWER);
+    power_param1 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state1);
+    power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state2);
+    power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state3);
+    power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state4);
+    power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state5);
+    power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state6);
     
     esp_rmaker_device_add_param(device1, power_param1);
     esp_rmaker_device_add_param(device2, power_param2);
@@ -302,7 +387,7 @@ void app_main()
     esp_rmaker_start();
 
     /* Start the HomeKit module */
-    app_homekit_start(DEFAULT_POWER);
+    app_homekit_start();
 
     /* Start the Wi-Fi.
      * If the node is provisioned, it will start connection attempts,

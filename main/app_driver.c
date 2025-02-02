@@ -78,6 +78,45 @@ void app_driver_init()
     app_indicator_init();
 }
 
+
+static void IRAM_ATTR gpio_isr_handler(void* arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(gpio_input_evt_queue, &gpio_num, NULL);
+}
+
+void app_input_driver_init(){
+     //zero-initialize the config structure.
+    gpio_config_t io_conf = {
+        .intr_type = GPIO_INTR_ANYEDGE,
+        .pin_bit_mask = GPIO_INPUT_PIN_SEL,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+    };
+    gpio_config(&io_conf);
+
+    //create a queue to handle gpio event from isr
+    gpio_input_evt_queue = xQueueCreate(1, sizeof(uint32_t));
+    //start gpio task
+    xTaskCreate(gpio_input_task, "gpio_input_task", 2048, NULL, 10, NULL);
+
+    gpio_isr_handler_add(DEVICE_1_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_1_INPUT_GPIO);
+    gpio_isr_handler_add(DEVICE_2_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_2_INPUT_GPIO);
+    gpio_isr_handler_add(DEVICE_3_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_3_INPUT_GPIO);
+    gpio_isr_handler_add(DEVICE_4_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_4_INPUT_GPIO);
+    gpio_isr_handler_add(DEVICE_5_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_5_INPUT_GPIO);
+    gpio_isr_handler_add(DEVICE_6_INPUT_GPIO, gpio_isr_handler, (void*) DEVICE_6_INPUT_GPIO);
+
+    printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
+
+    g_power_state1=!gpio_get_level(deviceList.device1.gpioIn);
+    g_power_state2=!gpio_get_level(deviceList.device2.gpioIn);
+    g_power_state3=!gpio_get_level(deviceList.device3.gpioIn);
+    g_power_state4=!gpio_get_level(deviceList.device4.gpioIn);
+    g_power_state5=!gpio_get_level(deviceList.device5.gpioIn);
+    g_power_state6=!gpio_get_level(deviceList.device6.gpioIn);
+}
+
 int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
     switch (deviceId) {
         case DEVICE_1_OUTPUT_GPIO:
