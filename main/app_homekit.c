@@ -33,7 +33,6 @@ static hap_char_t *device5_char;
 static hap_char_t *device6_char;
 static hap_char_t *device7_char;
 
-#define NUM_BRIDGED_ACCESSORIES 3
 #define QRCODE_BASE_URL     "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
 
 static void app_homekit_show_qr(void) {

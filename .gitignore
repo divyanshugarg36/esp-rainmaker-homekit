@@ -1,5 +1,1 @@
-build/bootloader/.ninja_log
-build/*
-build/.*
-build/.ninja_log
-
+build
