@@ -17,35 +17,6 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
-/* This is the button that is used for toggling the power */
-#define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
-#define BUTTON_ACTIVE_LEVEL  0
-
-/* This is the GPIO on which the power will be set */
-#define DEVICE_1_OUTPUT_GPIO   17
-#define DEVICE_2_OUTPUT_GPIO   16
-#define DEVICE_3_OUTPUT_GPIO   15
-#define DEVICE_4_OUTPUT_GPIO   14
-#define DEVICE_5_OUTPUT_GPIO   13
-#define DEVICE_6_OUTPUT_GPIO   12
-#define DEVICE_7_OUTPUT_GPIO   10
-
-static bool g_power_state1 = DEFAULT_POWER;
-static bool g_power_state2 = DEFAULT_POWER;
-static bool g_power_state3 = DEFAULT_POWER;
-static bool g_power_state4 = DEFAULT_POWER;
-static bool g_power_state5 = DEFAULT_POWER;
-static bool g_power_state6 = DEFAULT_POWER;
-static bool g_power_state7 = DEFAULT_POWER;
-
-/* These values correspoind to H,S,V = 120,100,10 */
-#define DEFAULT_RED     0
-#define DEFAULT_GREEN   25
-#define DEFAULT_BLUE    0
-
-#define WIFI_RESET_BUTTON_TIMEOUT       3
-#define FACTORY_RESET_BUTTON_TIMEOUT    10
-
 void app_indicator_set(bool state)
 {
     if (state) {
@@ -63,7 +34,7 @@ static void app_indicator_init(void)
 static void push_btn_cb(void *arg)
 {
     bool new_state = !g_power_state1;
-    app_driver_set_state(new_state);
+    app_driver_set_state(deviceList.device1.id, new_state);
     esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(new_state));
@@ -96,84 +67,85 @@ void app_driver_init()
         app_reset_button_register(btn_handle, WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
     }
 
-    setGpioPoweModeforOutput(DEVICE_1_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_2_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_3_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_4_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_5_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_6_OUTPUT_GPIO);
-    setGpioPoweModeforOutput(DEVICE_7_OUTPUT_GPIO);
+    setGpioPoweModeforOutput(deviceList.device1.gpio);
+    setGpioPoweModeforOutput(deviceList.device2.gpio);
+    setGpioPoweModeforOutput(deviceList.device3.gpio);
+    setGpioPoweModeforOutput(deviceList.device4.gpio);
+    setGpioPoweModeforOutput(deviceList.device5.gpio);
+    setGpioPoweModeforOutput(deviceList.device6.gpio);
+    setGpioPoweModeforOutput(deviceList.device7.gpio);
 
     app_indicator_init();
 }
 
-int IRAM_ATTR app_driver_set_state(bool state)
-{
-    if(g_power_state1 != state) {
-        g_power_state1 = state;
-        set_power_state(DEVICE_1_OUTPUT_GPIO, g_power_state1);
+int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
+    switch (deviceId) {
+        case DEVICE_1_OUTPUT_GPIO:
+            if(g_power_state1 != state) {
+                g_power_state1 = state;
+                set_power_state(DEVICE_1_OUTPUT_GPIO, g_power_state1);
+            }
+            return ESP_OK;
+        case DEVICE_2_OUTPUT_GPIO:
+            if(g_power_state2 != state) {
+                g_power_state2 = state;
+                set_power_state(DEVICE_2_OUTPUT_GPIO, g_power_state2);
+            }
+            return ESP_OK;
+        case DEVICE_3_OUTPUT_GPIO:
+            if(g_power_state3 != state) {
+                g_power_state3 = state;
+                set_power_state(DEVICE_3_OUTPUT_GPIO, g_power_state3);
+            }
+            return ESP_OK;
+        case DEVICE_4_OUTPUT_GPIO:
+            if(g_power_state4 != state) {
+                g_power_state4 = state;
+                set_power_state(DEVICE_4_OUTPUT_GPIO, g_power_state4);
+            }
+            return ESP_OK;
+        case DEVICE_5_OUTPUT_GPIO:
+            if(g_power_state5 != state) {
+                g_power_state5 = state;
+                set_power_state(DEVICE_5_OUTPUT_GPIO, g_power_state5);
+            }
+            return ESP_OK;
+        case DEVICE_6_OUTPUT_GPIO:
+            if(g_power_state6 != state) {
+                g_power_state6 = state;
+                set_power_state(DEVICE_6_OUTPUT_GPIO, g_power_state6);
+            }
+            return ESP_OK;
+        case DEVICE_7_OUTPUT_GPIO:
+            if(g_power_state7 != state) {
+                g_power_state7 = state;
+                set_power_state(DEVICE_7_OUTPUT_GPIO, g_power_state7);
+            }
+            return ESP_OK;
+        default:
+            return ESP_FAIL;
     }
-    return ESP_OK;
 }
 
-// New function to set state of second switch
-int IRAM_ATTR app_driver_set_state2(bool state)
-{
-    if(g_power_state2 != state) {
-        g_power_state2 = state;
-        set_power_state(DEVICE_2_OUTPUT_GPIO, g_power_state2);
-    }
-    return ESP_OK;
-}
 
-int IRAM_ATTR app_driver_set_state3(bool state)
-{
-    if(g_power_state3 != state) {
-        g_power_state3 = state;
-        set_power_state(DEVICE_3_OUTPUT_GPIO, g_power_state3);
+bool app_driver_get_state(int deviceId) {
+    switch (deviceId)
+    {
+    case DEVICE_1_ID:
+        return g_power_state1;
+    case DEVICE_2_ID:
+        return g_power_state2;
+    case DEVICE_3_ID:
+        return g_power_state3;
+    case DEVICE_4_ID:
+        return g_power_state4;
+    case DEVICE_5_ID:
+        return g_power_state5;
+    case DEVICE_6_ID:
+        return g_power_state6;
+    case DEVICE_7_ID:
+        return g_power_state7;
+    default:
+        return false;
     }
-    return ESP_OK;
-}
-int IRAM_ATTR app_driver_set_state4(bool state)
-{
-    if(g_power_state4 != state) {
-        g_power_state4 = state;
-        set_power_state(DEVICE_4_OUTPUT_GPIO, g_power_state4);
-    }
-    return ESP_OK;
-}
-int IRAM_ATTR app_driver_set_state5(bool state)
-{
-    if(g_power_state5 != state) {
-        g_power_state5 = state;
-        set_power_state(DEVICE_5_OUTPUT_GPIO, g_power_state5);
-    }
-    return ESP_OK;
-}
-int IRAM_ATTR app_driver_set_state6(bool state)
-{
-    if(g_power_state6 != state) {
-        g_power_state6 = state;
-        set_power_state(DEVICE_6_OUTPUT_GPIO, g_power_state6);
-    }
-    return ESP_OK;
-}
-int IRAM_ATTR app_driver_set_state7(bool state)
-{
-    if(g_power_state7 != state) {
-        g_power_state7 = state;
-        set_power_state(DEVICE_7_OUTPUT_GPIO, g_power_state7);
-    }
-    return ESP_OK;
-}
-
-bool app_driver_get_state(void)
-{
-    return g_power_state1;
-}
-
-// New function to get state of second switch
-bool app_driver_get_state2(void)
-{
-    return g_power_state2;
 }

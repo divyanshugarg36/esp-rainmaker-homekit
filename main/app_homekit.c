@@ -25,7 +25,13 @@
 
 static const char *TAG = "app_homekit";
 
-static hap_char_t *on_char;
+static hap_char_t *device1_char;
+static hap_char_t *device2_char;
+static hap_char_t *device3_char;
+static hap_char_t *device4_char;
+static hap_char_t *device5_char;
+static hap_char_t *device6_char;
+static hap_char_t *device7_char;
 
 #define NUM_BRIDGED_ACCESSORIES 3
 #define QRCODE_BASE_URL     "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
@@ -85,6 +91,12 @@ static int fan_write(hap_write_data_t write_data[], int count,
         if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
             fan_on(write->val.b);
             hap_char_update_val(write->hc, &(write->val));
+
+            esp_rmaker_param_update_and_report(
+                esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
+                esp_rmaker_bool(write->val.b)
+            );
+
             *(write->status) = HAP_STATUS_SUCCESS;
         } else {
             *(write->status) = HAP_STATUS_RES_ABSENT;
@@ -114,7 +126,7 @@ static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
  * got visual identification
  */
 static int switch_identify(hap_acc_t *ha) {
-    bool cur_state = app_driver_get_state();
+    bool cur_state = app_driver_get_state(deviceList.device1.id);
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);
     app_indicator_set(cur_state);
@@ -136,7 +148,7 @@ static int switch_write(hap_write_data_t write_data[], int count,
         if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
             ESP_LOGI(TAG, "Received Write. Switch %s", write->val.b ? "On" : "Off");
             /* Set the switch state */
-            app_driver_set_state(write->val.b);
+            app_driver_set_state(deviceList.device1.id, write->val.b);
             /* Update the HomeKit characteristic */
             hap_char_update_val(write->hc, &(write->val));
             /* Report to RainMaker */
@@ -157,9 +169,19 @@ esp_err_t app_homekit_update_state(bool state)
         .b = state,
     };
 
-    hap_char_update_val(on_char, &new_value);
+    hap_char_update_val(device1_char, &new_value);
     return ESP_OK;
 }
+
+esp_err_t app_homekit_update_state2(bool state)
+{
+    hap_val_t new_value = {
+        .b = state,
+    };
+    hap_char_update_val(device2_char, &new_value);
+    return ESP_OK;
+}
+
 esp_err_t app_homekit_start(bool init_state)
 {
     hap_acc_t *accessory;
@@ -168,85 +190,246 @@ esp_err_t app_homekit_start(bool init_state)
     /* Initialize the HAP core */
     hap_init(HAP_TRANSPORT_WIFI);
 
-    /* Initialise the mandatory parameters for Accessory which will be added as
+    /* MAIN ACCESSORY
+     * Initialise the mandatory parameters for Accessory which will be added as
      * the mandatory services internally
      */
-    hap_acc_cfg_t cfg = {
-        .name = "Esp RainMaker Device",
-        .manufacturer = "Espressif",
-        .model = "homekit_switch",
-        .serial_num = "001122334455",
-        .fw_rev = "1.0",
+    hap_acc_cfg_t device1_cfg = {
+        .name = deviceList.device1.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
         .hw_rev = NULL,
         .pv = "1.1.0",
         .identify_routine = switch_identify,
         .cid = HAP_CID_SWITCH,
     };
     /* Create accessory object */
-    accessory = hap_acc_create(&cfg);
-
+    accessory = hap_acc_create(&device1_cfg);
     /* Create the Outlet Service. Include the "name" since this is a user visible service  */
     service = hap_serv_switch_create(init_state);
-    hap_serv_add_char(service, hap_char_name_create("Switch"));
-
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device1.name));
+    /* Set the Accessory name as the Private data for the service,
+     * so that the correct accessory can be identified in the
+     * write callback
+     */
+    hap_serv_set_priv(service, strdup(deviceList.device1.name));
     /* Set the write callback for the service */
     hap_serv_set_write_cb(service, switch_write);
-
     /* Get pointer to the on_char to be used during update */
-    on_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-
+    device1_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
     /* Add the Outlet Service to the Accessory Object */
     hap_acc_add_serv(accessory, service);
-
     /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
 
 
 
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device2_cfg = {
+        .name = deviceList.device2.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device2_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device2.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device2.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device2_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device2.name));
 
 
-  for (uint8_t i = 0; i < NUM_BRIDGED_ACCESSORIES; i++) {
-        char accessory_name[12] = {0};
-        sprintf(accessory_name, "ESP-Fan-%d", i);
-
-        hap_acc_cfg_t bridge_cfg = {
-            .name = accessory_name,
-            .manufacturer = "Espressif",
-            .model = "EspFan01",
-            .serial_num = "abcdefg",
-            .fw_rev = "0.9.0",
-            .hw_rev = NULL,
-            .pv = "1.1.0",
-            .identify_routine = accessory_identify,
-            .cid = HAP_CID_BRIDGE,
-        };
-        /* Create accessory object */
-        accessory = hap_acc_create(&bridge_cfg);
-
-        /* Create the Fan Service. Include the "name" since this is a user visible service  */
-        service = hap_serv_fan_create(false);
-        hap_serv_add_char(service, hap_char_name_create(accessory_name));
-
-        /* Set the Accessory name as the Private data for the service,
-         * so that the correct accessory can be identified in the
-         * write callback
-         */
-        hap_serv_set_priv(service, strdup(accessory_name));
-
-        /* Set the write callback for the service */
-        hap_serv_set_write_cb(service, fan_write);
- 
-        /* Add the Fan Service to the Accessory Object */
-        hap_acc_add_serv(accessory, service);
-
-        /* Add the Accessory to the HomeKit Database */
-        hap_add_bridged_accessory(accessory, hap_get_unique_aid(accessory_name));
-    }
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device3_cfg = {
+        .name = deviceList.device3.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device3_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device3.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device3.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device3_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device3.name));
 
 
 
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device4_cfg = {
+        .name = deviceList.device4.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device4_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device4.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device4.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device4_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device4.name));
 
 
+
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device5_cfg = {
+        .name = deviceList.device5.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device5_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device5.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device5.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device5_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device5.name));
+
+
+
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device6_cfg = {
+        .name = deviceList.device6.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device6_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device6.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device6.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device6_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device6.name));
+
+    /*
+     * Bridge Accessory
+     */ 
+    hap_acc_cfg_t device7_cfg = {
+        .name = deviceList.device7.name,
+        .manufacturer = MANUFACTURER,
+        .model = MODEL,
+        .serial_num = SERIAL_NUMBER,
+        .fw_rev = FIRMWARE_REVISION,
+        .hw_rev = NULL,
+        .pv = "1.1.0",
+        .identify_routine = accessory_identify,
+        .cid = HAP_CID_BRIDGE,
+    };
+    /* Create accessory object */
+    accessory = hap_acc_create(&device7_cfg);
+    /* Create the Fan Service. Include the "name" since this is a user visible service  */
+    service = hap_serv_switch_create(false);
+    hap_serv_add_char(service, hap_char_name_create(deviceList.device7.name));
+    /* Set the Accessory name as the Private data for the service,
+        * so that the correct accessory can be identified in the
+        * write callback
+        */
+    hap_serv_set_priv(service, strdup(deviceList.device7.name));
+    /* Set the write callback for the service */
+    hap_serv_set_write_cb(service, fan_write);
+    /* Get pointer to the on_char to be used during update */
+    device7_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+    /* Add the Fan Service to the Accessory Object */
+    hap_acc_add_serv(accessory, service);
+    /* Add the Accessory to the HomeKit Database */
+    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device7.name));
 
 
 

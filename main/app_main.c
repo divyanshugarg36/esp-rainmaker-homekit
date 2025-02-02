@@ -43,53 +43,6 @@ esp_rmaker_device_t *device5;
 esp_rmaker_device_t *device6;
 esp_rmaker_device_t *device7;
 
-
-typedef struct {
-    char *name;
-    int gpioNumber;
-} Switch;
-
-typedef struct {
-    Switch device1;
-    Switch device2;
-    Switch device3;
-    Switch device4;
-    Switch device5;
-    Switch device6;
-    Switch device7;
-} Devices;
-
-Devices deviceList = {
-    .device1 = {
-        .name = "Main Light",
-        .gpioNumber = 1
-    },
-    .device2 = {
-        .name = "Small Light 1",
-        .gpioNumber = 1
-    },
-    .device3 = {
-        .name = "Small Light 2",
-        .gpioNumber = 1
-    },
-    .device4 = {
-        .name = "Fan 1",
-        .gpioNumber = 1
-    },
-    .device5 = {
-        .name = "Fan 2",
-        .gpioNumber = 1
-    },
-    .device6 = {
-        .name = "Socket",
-        .gpioNumber = 1
-    },
-    .device7 = {
-        .name = "Ceiling Light",
-        .gpioNumber = 1
-    }
-};
-
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
             const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
@@ -103,27 +56,28 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
                 esp_rmaker_param_get_name(param));
         // Check which device the command is for
         if (device == device1) {
-            app_driver_set_state(val.val.b);
+            app_driver_set_state(deviceList.device1.id, val.val.b);
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(val.val.b);
         } else if (device == device2) {
-            app_driver_set_state2(val.val.b);
+            app_driver_set_state(deviceList.device2.id, val.val.b);
             esp_rmaker_param_update(param, val);
+            app_homekit_update_state2(val.val.b);
         }
          else if (device == device3) {
-            app_driver_set_state3(val.val.b);
+            app_driver_set_state(deviceList.device3.id, val.val.b);
             esp_rmaker_param_update(param, val);
         } else if (device == device4) {
-            app_driver_set_state4(val.val.b);
+            app_driver_set_state(deviceList.device4.id, val.val.b);
             esp_rmaker_param_update(param, val);
         } else if (device == device5) {
-            app_driver_set_state5(val.val.b);
+            app_driver_set_state(deviceList.device5.id, val.val.b);
             esp_rmaker_param_update(param, val);
         } else if (device == device6) {
-            app_driver_set_state6(val.val.b);
+            app_driver_set_state(deviceList.device6.id, val.val.b);
             esp_rmaker_param_update(param, val);
         } else if (device == device7) {
-            app_driver_set_state7(val.val.b);
+            app_driver_set_state(deviceList.device7.id, val.val.b);
             esp_rmaker_param_update(param, val);
         }
     }
@@ -227,7 +181,7 @@ void app_main()
      */
     esp_rmaker_console_init();
     app_driver_init();
-    app_driver_set_state(DEFAULT_POWER);
+    app_driver_set_state(DEVICE_1_OUTPUT_GPIO, DEFAULT_POWER);
 
     /* Initialize NVS. */
     esp_err_t err = nvs_flash_init();
