@@ -57,13 +57,6 @@ extern esp_rmaker_device_t *device6;
 void gpio_input_task(void* arg);
 void app_input_driver_init();
 
-extern bool g_power_state1;
-extern bool g_power_state2;
-extern bool g_power_state3;
-extern bool g_power_state4;
-extern bool g_power_state5;
-extern bool g_power_state6;
-
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
 #define DEFAULT_GREEN   25

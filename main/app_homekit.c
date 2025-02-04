@@ -274,7 +274,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device1_cfg);
     /* Create the Outlet Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state1);
+    service = hap_serv_switch_create(app_driver_get_state(deviceList.device1.id));
     hap_serv_add_char(service, hap_char_name_create(deviceList.device1.name));
     /* Set the Accessory name as the Private data for the service,
      * so that the correct accessory can be identified in the
@@ -309,7 +309,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device2_cfg);
     /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state2);
+    service = hap_serv_switch_create(deviceList.device2.id);
     hap_serv_add_char(service, hap_char_name_create(deviceList.device2.name));
     /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the
@@ -343,7 +343,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device3_cfg);
     /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state3);
+    service = hap_serv_switch_create(deviceList.device3.id);
     hap_serv_add_char(service, hap_char_name_create(deviceList.device3.name));
     /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the
@@ -378,7 +378,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device4_cfg);
     /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state4);
+    service = hap_serv_switch_create(deviceList.device4.id);
     hap_serv_add_char(service, hap_char_name_create(deviceList.device4.name));
     /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the
@@ -413,7 +413,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device5_cfg);
     /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state5);
+    service = hap_serv_switch_create(deviceList.device5.id);
     hap_serv_add_char(service, hap_char_name_create(deviceList.device5.name));
     /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the
@@ -448,7 +448,7 @@ esp_err_t app_homekit_start()
     /* Create accessory object */
     accessory = hap_acc_create(&device6_cfg);
     /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(g_power_state6);
+    service = hap_serv_switch_create(deviceList.device6.id);
     hap_serv_add_char(service, hap_char_name_create(deviceList.device6.name));
     /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the

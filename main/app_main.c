@@ -36,13 +36,6 @@
 
 static const char *TAG = "app_main";
 
-bool g_power_state1 = DEFAULT_POWER;
-bool g_power_state2 = DEFAULT_POWER;
-bool g_power_state3 = DEFAULT_POWER;
-bool g_power_state4 = DEFAULT_POWER;
-bool g_power_state5 = DEFAULT_POWER;
-bool g_power_state6 = DEFAULT_POWER;
-
 esp_rmaker_device_t *device1;
 esp_rmaker_device_t *device2;
 esp_rmaker_device_t *device3;
@@ -332,12 +325,12 @@ void app_main()
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
      */
-    power_param1 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state1);
-    power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state2);
-    power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state3);
-    power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state4);
-    power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state5);
-    power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, g_power_state6);
+    power_param1 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device1.id));
+    power_param2 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device2.id));
+    power_param3 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device3.id));
+    power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device4.id));
+    power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device5.id));
+    power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device6.id));
     
     esp_rmaker_device_add_param(device1, power_param1);
     esp_rmaker_device_add_param(device2, power_param2);

@@ -17,6 +17,13 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
+static bool g_power_state1 = DEFAULT_POWER;
+static bool g_power_state2 = DEFAULT_POWER;
+static bool g_power_state3 = DEFAULT_POWER;
+static bool g_power_state4 = DEFAULT_POWER;
+static bool g_power_state5 = DEFAULT_POWER;
+static bool g_power_state6 = DEFAULT_POWER;
+
 void app_indicator_set(bool state)
 {
     if (state) {
@@ -119,47 +126,46 @@ void app_input_driver_init(){
 
 int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
     switch (deviceId) {
-        case DEVICE_1_OUTPUT_GPIO:
-            if(g_power_state1 != state) {
+        case DEVICE_1_ID:
+            if (g_power_state1 != state) {
                 g_power_state1 = state;
-                set_power_state(DEVICE_1_OUTPUT_GPIO, g_power_state1);
+                set_power_state(deviceList.device1.gpio, g_power_state1);
             }
             return ESP_OK;
-        case DEVICE_2_OUTPUT_GPIO:
-            if(g_power_state2 != state) {
+        case DEVICE_2_ID:
+            if (g_power_state2 != state) {
                 g_power_state2 = state;
-                set_power_state(DEVICE_2_OUTPUT_GPIO, g_power_state2);
+                set_power_state(deviceList.device2.gpio, g_power_state2);
             }
             return ESP_OK;
-        case DEVICE_3_OUTPUT_GPIO:
-            if(g_power_state3 != state) {
+        case DEVICE_3_ID:
+            if (g_power_state3 != state) {
                 g_power_state3 = state;
-                set_power_state(DEVICE_3_OUTPUT_GPIO, g_power_state3);
+                set_power_state(deviceList.device3.gpio, g_power_state3);
             }
             return ESP_OK;
-        case DEVICE_4_OUTPUT_GPIO:
-            if(g_power_state4 != state) {
+        case DEVICE_4_ID:
+            if (g_power_state4 != state) {
                 g_power_state4 = state;
-                set_power_state(DEVICE_4_OUTPUT_GPIO, g_power_state4);
+                set_power_state(deviceList.device4.gpio, g_power_state4);
             }
             return ESP_OK;
-        case DEVICE_5_OUTPUT_GPIO:
-            if(g_power_state5 != state) {
+        case DEVICE_5_ID:
+            if (g_power_state5 != state) {
                 g_power_state5 = state;
-                set_power_state(DEVICE_5_OUTPUT_GPIO, g_power_state5);
+                set_power_state(deviceList.device5.gpio, g_power_state5);
             }
             return ESP_OK;
-        case DEVICE_6_OUTPUT_GPIO:
-            if(g_power_state6 != state) {
+        case DEVICE_6_ID:
+            if (g_power_state6 != state) {
                 g_power_state6 = state;
-                set_power_state(DEVICE_6_OUTPUT_GPIO, g_power_state6);
+                set_power_state(deviceList.device6.gpio, g_power_state6);
             }
             return ESP_OK;
         default:
             return ESP_FAIL;
     }
 }
-
 
 bool app_driver_get_state(int deviceId) {
     switch (deviceId)
