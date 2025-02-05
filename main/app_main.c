@@ -51,7 +51,7 @@ esp_rmaker_param_t *power_param6;
 
 QueueHandle_t gpio_input_evt_queue = NULL;
 
-void gpio_input_task(void* arg)
+void IRAM_ATTR gpio_input_task(void* arg)
 {
     uint32_t io_num;
     for (;;) {

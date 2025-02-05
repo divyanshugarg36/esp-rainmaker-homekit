@@ -9,12 +9,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define GPIO_HIGH 1
+#define GPIO_LOW  0
+
 #define MANUFACTURER "Garg's Home"
 #define MODEL "homekit_switch"
 #define SERIAL_NUMBER "001122334455"
 #define FIRMWARE_REVISION "1.0"
-
-#define DEFAULT_POWER false
 
 extern QueueHandle_t gpio_input_evt_queue;
 
@@ -26,8 +27,8 @@ extern esp_rmaker_device_t *device5;
 extern esp_rmaker_device_t *device6;
 
 /* This is the button that is used for toggling the power */
-#define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
-#define BUTTON_ACTIVE_LEVEL  0
+#define BUTTON_GPIO          0
+#define BUTTON_ACTIVE_LEVEL  GPIO_LOW
 
 // Declare Device it to make it easy to identify
 #define DEVICE_1_ID   1
@@ -130,3 +131,8 @@ bool app_driver_get_state(int deviceId);
 
 esp_err_t app_homekit_start();
 esp_err_t app_homekit_update_state(int deviceId, bool state);
+
+void init_nvs();
+void init_power_states();
+void save_device_state(int device, int state);
+int read_device_state(int deviceId);

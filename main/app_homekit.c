@@ -84,6 +84,7 @@ static void app_homekit_event_handler(void* arg, esp_event_base_t event_base,
  * got visual identification
  */
 static int switch_identify(hap_acc_t *ha) {
+    // TODO: Check this method
     bool cur_state = app_driver_get_state(deviceList.device1.id);
     app_indicator_set(!cur_state);
     vTaskDelay(500/portTICK_PERIOD_MS);

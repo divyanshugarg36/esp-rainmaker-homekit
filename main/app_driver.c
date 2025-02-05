@@ -13,16 +13,65 @@
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_params.h> 
 
+#include "nvs_flash.h"
+#include "nvs.h"
+
 #include <app_reset.h>
 #include <ws2812_led.h>
 #include "app_priv.h"
 
-static bool g_power_state1 = DEFAULT_POWER;
-static bool g_power_state2 = DEFAULT_POWER;
-static bool g_power_state3 = DEFAULT_POWER;
-static bool g_power_state4 = DEFAULT_POWER;
-static bool g_power_state5 = DEFAULT_POWER;
-static bool g_power_state6 = DEFAULT_POWER;
+static bool g_power_state1 = GPIO_LOW;
+static bool g_power_state2 = GPIO_LOW;
+static bool g_power_state3 = GPIO_LOW;
+static bool g_power_state4 = GPIO_LOW;
+static bool g_power_state5 = GPIO_LOW;
+static bool g_power_state6 = GPIO_LOW;
+
+/***************************************************************
+ * NVS Code for Local Storage of previous states
+ * The states will persist even after a reset
+***************************************************************/
+void init_nvs() {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        printf("ERASE! This happened.\n");
+        nvs_flash_erase();
+        nvs_flash_init();
+    }
+}
+
+void save_device_state(int device, int state) {
+    nvs_handle_t my_handle;
+    if (nvs_open("storage", NVS_READWRITE, &my_handle) == ESP_OK) {
+        char key[10];
+        sprintf(key, "device_%d", device);
+        nvs_set_i32(my_handle, key, state);
+        nvs_commit(my_handle);
+        nvs_close(my_handle);
+    }
+}
+
+int read_device_state(int device) {
+    nvs_handle_t my_handle;
+    int32_t state = GPIO_LOW;
+    if (nvs_open("storage", NVS_READONLY, &my_handle) == ESP_OK) {
+        char key[10];
+        sprintf(key, "device_%d", device);
+        nvs_get_i32(my_handle, key, &state);
+        nvs_close(my_handle);
+    }
+    return state;
+}
+
+void init_power_states() {
+    g_power_state1 = read_device_state(deviceList.device1.id);
+    g_power_state2 = read_device_state(deviceList.device2.id);
+    g_power_state3 = read_device_state(deviceList.device3.id);
+    g_power_state4 = read_device_state(deviceList.device4.id);
+    g_power_state5 = read_device_state(deviceList.device5.id);
+    g_power_state6 = read_device_state(deviceList.device6.id);
+    printf("init_power_states %d %d %d %d %d %d\n", g_power_state1, g_power_state2, g_power_state3, g_power_state4, g_power_state5, g_power_state6);
+}
 
 void app_indicator_set(bool state)
 {
@@ -33,28 +82,13 @@ void app_indicator_set(bool state)
     }
 }
 
-static void app_indicator_init(void)
-{
-    ws2812_led_init();
-    app_indicator_set(g_power_state1);
-}
-static void push_btn_cb(void *arg)
-{
-    bool new_state = !g_power_state1;
-    app_driver_set_state(deviceList.device1.id, new_state);
-    esp_rmaker_param_update_and_report(
-            esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
-            esp_rmaker_bool(new_state));
-    app_homekit_update_state(deviceList.device1.id, new_state);
-}
-
 static void set_power_state(int gpioPin, bool target)
 {
     gpio_set_level(gpioPin, target);
     app_indicator_set(target);
 }
 
-void setGpioPoweModeforOutput(int gpioPin){
+void configure_gpio_output(int gpioPin){
     /* Configure power */
     gpio_config_t io_conf = {
         .mode = GPIO_MODE_OUTPUT,
@@ -66,23 +100,28 @@ void setGpioPoweModeforOutput(int gpioPin){
 
 void app_driver_init()
 {
+    /* Setup NVS storage */
+    init_nvs();
+    /* Read initial Power states from NVS */
+    init_power_states();
+
     button_handle_t btn_handle = iot_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL);
     if (btn_handle) {
-        /* Register a callback for a button tap (short press) event */
-        iot_button_set_evt_cb(btn_handle, BUTTON_CB_TAP, push_btn_cb, NULL);
         /* Register Wi-Fi reset and factory reset functionality on same button */
         app_reset_button_register(btn_handle, WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
     }
 
-    setGpioPoweModeforOutput(deviceList.device1.gpio);
-    setGpioPoweModeforOutput(deviceList.device2.gpio);
-    setGpioPoweModeforOutput(deviceList.device3.gpio);
-    setGpioPoweModeforOutput(deviceList.device4.gpio);
-    setGpioPoweModeforOutput(deviceList.device5.gpio);
-    setGpioPoweModeforOutput(deviceList.device6.gpio);
-    setGpioPoweModeforOutput(deviceList.device7.gpio);
+    configure_gpio_output(deviceList.device1.gpio);
+    configure_gpio_output(deviceList.device2.gpio);
+    configure_gpio_output(deviceList.device3.gpio);
+    configure_gpio_output(deviceList.device4.gpio);
+    configure_gpio_output(deviceList.device5.gpio);
+    configure_gpio_output(deviceList.device6.gpio);
+    configure_gpio_output(deviceList.device7.gpio);
 
-    app_indicator_init();
+    ws2812_led_init();
+    app_indicator_set(true);
+
 }
 
 
@@ -92,6 +131,9 @@ static void IRAM_ATTR gpio_isr_handler(void* arg)
     xQueueSendFromISR(gpio_input_evt_queue, &gpio_num, NULL);
 }
 
+/*************************************************************
+ * Function to initialize the Input GPIOs
+**************************************************************/
 void app_input_driver_init(){
      //zero-initialize the config structure.
     gpio_config_t io_conf = {
@@ -124,42 +166,52 @@ void app_input_driver_init(){
     g_power_state6=!gpio_get_level(deviceList.device6.gpioIn);
 }
 
+/*************************************************************
+ * Function to set the power state of a device
+ * Also writes data to NVS
+**************************************************************/
 int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
     switch (deviceId) {
         case DEVICE_1_ID:
             if (g_power_state1 != state) {
                 g_power_state1 = state;
                 set_power_state(deviceList.device1.gpio, g_power_state1);
+                save_device_state(deviceId, g_power_state1);
             }
             return ESP_OK;
         case DEVICE_2_ID:
             if (g_power_state2 != state) {
                 g_power_state2 = state;
                 set_power_state(deviceList.device2.gpio, g_power_state2);
+                save_device_state(deviceId, g_power_state2);
             }
             return ESP_OK;
         case DEVICE_3_ID:
             if (g_power_state3 != state) {
                 g_power_state3 = state;
                 set_power_state(deviceList.device3.gpio, g_power_state3);
+                save_device_state(deviceId, g_power_state3);
             }
             return ESP_OK;
         case DEVICE_4_ID:
             if (g_power_state4 != state) {
                 g_power_state4 = state;
                 set_power_state(deviceList.device4.gpio, g_power_state4);
+                save_device_state(deviceId, g_power_state4);
             }
             return ESP_OK;
         case DEVICE_5_ID:
             if (g_power_state5 != state) {
                 g_power_state5 = state;
                 set_power_state(deviceList.device5.gpio, g_power_state5);
+                save_device_state(deviceId, g_power_state5);
             }
             return ESP_OK;
         case DEVICE_6_ID:
             if (g_power_state6 != state) {
                 g_power_state6 = state;
                 set_power_state(deviceList.device6.gpio, g_power_state6);
+                save_device_state(deviceId, g_power_state6);
             }
             return ESP_OK;
         default:
@@ -167,7 +219,10 @@ int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
     }
 }
 
-bool app_driver_get_state(int deviceId) {
+/*************************************************************
+ * Function to get the power state of a device
+**************************************************************/
+bool IRAM_ATTR app_driver_get_state(int deviceId) {
     switch (deviceId)
     {
     case DEVICE_1_ID:
