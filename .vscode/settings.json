@@ -26,6 +26,7 @@
         "app_insights.h": "c",
         "esp_rmaker_console.h": "c",
         "queue.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "iot_button.h": "c"
     }
 }

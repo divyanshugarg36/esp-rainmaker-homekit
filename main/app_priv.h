@@ -9,9 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define GPIO_HIGH 1
-#define GPIO_LOW  0
-
 #define MANUFACTURER "Garg's Home"
 #define MODEL "homekit_switch"
 #define SERIAL_NUMBER "001122334455"
@@ -28,7 +25,6 @@ extern esp_rmaker_device_t *device6;
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          0
-#define BUTTON_ACTIVE_LEVEL  GPIO_LOW
 
 // Declare Device it to make it easy to identify
 #define DEVICE_1_ID   1
@@ -53,10 +49,9 @@ extern esp_rmaker_device_t *device6;
 #define DEVICE_5_INPUT_GPIO   33
 #define DEVICE_6_INPUT_GPIO   32
 
-#define GPIO_INPUT_PIN_SEL  ((1ULL<<DEVICE_1_INPUT_GPIO) | (1ULL<<DEVICE_2_INPUT_GPIO) | (1ULL<<DEVICE_3_INPUT_GPIO) | (1ULL<<DEVICE_4_INPUT_GPIO) | (1ULL<<DEVICE_5_INPUT_GPIO) | (1ULL<<DEVICE_6_INPUT_GPIO))
+// #define GPIO_INPUT_PIN_SEL  ((1ULL<<DEVICE_1_INPUT_GPIO) | (1ULL<<DEVICE_2_INPUT_GPIO) | (1ULL<<DEVICE_3_INPUT_GPIO) | (1ULL<<DEVICE_4_INPUT_GPIO) | (1ULL<<DEVICE_5_INPUT_GPIO) | (1ULL<<DEVICE_6_INPUT_GPIO))
 
-void gpio_input_task(void* arg);
-void app_input_driver_init();
+void gpio_input_task(int gpioIn);
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -132,7 +127,8 @@ bool app_driver_get_state(int deviceId);
 esp_err_t app_homekit_start();
 esp_err_t app_homekit_update_state(int deviceId, bool state);
 
-void init_nvs();
 void init_power_states();
+
+void init_nvs();
 void save_device_state(int device, int state);
 int read_device_state(int deviceId);

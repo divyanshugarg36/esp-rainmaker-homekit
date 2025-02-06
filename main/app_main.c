@@ -49,71 +49,63 @@ esp_rmaker_param_t *power_param4;
 esp_rmaker_param_t *power_param5;
 esp_rmaker_param_t *power_param6;
 
-QueueHandle_t gpio_input_evt_queue = NULL;
-
-void IRAM_ATTR gpio_input_task(void* arg)
+void IRAM_ATTR gpio_input_task(int gpioIn)
 {
-    uint32_t io_num;
-    for (;;) {
-        if (xQueueReceive(gpio_input_evt_queue, &io_num, portMAX_DELAY)) {
-            int val = !gpio_get_level(io_num);
-            switch (io_num)
-            {
-            case DEVICE_1_INPUT_GPIO:
-                app_driver_set_state(deviceList.device1.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val));
-                app_homekit_update_state(deviceList.device1.id, val);
-                break;
-            case DEVICE_2_INPUT_GPIO:
-                app_driver_set_state(deviceList.device2.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val)
-                );
-                app_homekit_update_state(deviceList.device2.id, val);
-                break;
-            case DEVICE_3_INPUT_GPIO:
-                app_driver_set_state(deviceList.device3.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val)
-                );
-                app_homekit_update_state(deviceList.device3.id, val);
-                break;
-            case DEVICE_4_INPUT_GPIO:
-                app_driver_set_state(deviceList.device4.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val)
-                );
-                app_homekit_update_state(deviceList.device4.id, val);
-                break;
-            case DEVICE_5_INPUT_GPIO:
-                app_driver_set_state(deviceList.device5.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val)
-                );
-                app_homekit_update_state(deviceList.device5.id, val);
-                break;
-            case DEVICE_6_INPUT_GPIO:
-                app_driver_set_state(deviceList.device6.id, val);
-                esp_rmaker_param_update_and_report(
-                    esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
-                    esp_rmaker_bool(val)
-                );
-                app_homekit_update_state(deviceList.device6.id, val);
-                break;
-            default:
-                break;
-            }
-            printf("GPIO[%"PRIu32"] intr, val: %d\n", io_num, gpio_get_level(io_num));
-            printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
+    int val = !gpio_get_level(gpioIn);
+    switch (gpioIn)
+    {
+    case DEVICE_1_INPUT_GPIO:
+        app_driver_set_state(deviceList.device1.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val));
+        app_homekit_update_state(deviceList.device1.id, val);
+        break;
+    case DEVICE_2_INPUT_GPIO:
+        app_driver_set_state(deviceList.device2.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device2.id, val);
+        break;
+    case DEVICE_3_INPUT_GPIO:
+        app_driver_set_state(deviceList.device3.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device3.id, val);
+        break;
+    case DEVICE_4_INPUT_GPIO:
+        app_driver_set_state(deviceList.device4.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device4.id, val);
+        break;
+    case DEVICE_5_INPUT_GPIO:
+        app_driver_set_state(deviceList.device5.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device5.id, val);
+        break;
+    case DEVICE_6_INPUT_GPIO:
+        app_driver_set_state(deviceList.device6.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device6.id, val);
+        break;
+    default:
+        break;
     }
+    printf("GPIO[%d] intr, val: %d\n", gpioIn, gpio_get_level(gpioIn));
+    printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
 }
 
 /* Callback to handle commands received from the RainMaker cloud */
@@ -156,6 +148,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     }
     return ESP_OK;
 }
+
 /* Event handler for catching RainMaker events */
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data)
@@ -254,11 +247,6 @@ void app_main()
      */
     esp_rmaker_console_init();
     app_driver_init();
-    
-    // This method will read initial state of the devices from Input GPIOs
-    // it won't call rmaker and hma methods since they havent been initialized
-    // But they will set the default state which further activates the devices
-    app_input_driver_init();
     
     /* Initialize NVS. */
     esp_err_t err = nvs_flash_init();
