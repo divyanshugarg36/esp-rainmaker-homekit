@@ -35,23 +35,19 @@ extern esp_rmaker_device_t *device6;
 #define DEVICE_6_ID   6
 
 /* This is the GPIO on which the power will be set */
-#define DEVICE_1_OUTPUT_GPIO   17
-#define DEVICE_2_OUTPUT_GPIO   16
-#define DEVICE_3_OUTPUT_GPIO   15
-#define DEVICE_4_OUTPUT_GPIO   14
-#define DEVICE_5_OUTPUT_GPIO   13
-#define DEVICE_6_OUTPUT_GPIO   12
+#define DEVICE_1_OUTPUT_GPIO   16
+#define DEVICE_2_OUTPUT_GPIO   17
+#define DEVICE_3_OUTPUT_GPIO   18
+#define DEVICE_4_OUTPUT_GPIO   19
+#define DEVICE_5_OUTPUT_GPIO   22
+#define DEVICE_6_OUTPUT_GPIO   23
 
-#define DEVICE_1_INPUT_GPIO   26
-#define DEVICE_2_INPUT_GPIO   27
-#define DEVICE_3_INPUT_GPIO   25
-#define DEVICE_4_INPUT_GPIO   23
-#define DEVICE_5_INPUT_GPIO   33
-#define DEVICE_6_INPUT_GPIO   32
-
-// #define GPIO_INPUT_PIN_SEL  ((1ULL<<DEVICE_1_INPUT_GPIO) | (1ULL<<DEVICE_2_INPUT_GPIO) | (1ULL<<DEVICE_3_INPUT_GPIO) | (1ULL<<DEVICE_4_INPUT_GPIO) | (1ULL<<DEVICE_5_INPUT_GPIO) | (1ULL<<DEVICE_6_INPUT_GPIO))
-
-void gpio_input_task(int gpioIn);
+#define DEVICE_1_INPUT_GPIO   14
+#define DEVICE_2_INPUT_GPIO   25
+#define DEVICE_3_INPUT_GPIO   26
+#define DEVICE_4_INPUT_GPIO   27
+#define DEVICE_5_INPUT_GPIO   32
+#define DEVICE_6_INPUT_GPIO   33
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -83,37 +79,37 @@ static const Devices deviceList = {
         .id = DEVICE_1_ID,
         .name = "Main Light",
         .gpio = DEVICE_1_OUTPUT_GPIO,
-        .gpioIn = DEVICE_1_INPUT_GPIO
+        .gpioIn = DEVICE_1_INPUT_GPIO,
     },
     .device2 = {
         .id = DEVICE_2_ID,
         .name = "Small Light 1",
         .gpio = DEVICE_2_OUTPUT_GPIO,
-        .gpioIn = DEVICE_2_INPUT_GPIO
+        .gpioIn = DEVICE_2_INPUT_GPIO,
     },
     .device3 = {
         .id = DEVICE_3_ID,
         .name = "Small Light 2",
         .gpio = DEVICE_3_OUTPUT_GPIO,
-        .gpioIn = DEVICE_3_INPUT_GPIO
+        .gpioIn = DEVICE_3_INPUT_GPIO,
     },
     .device4 = {
         .id = DEVICE_4_ID,
         .name = "Fan 1",
         .gpio = DEVICE_4_OUTPUT_GPIO,
-        .gpioIn = DEVICE_4_INPUT_GPIO
+        .gpioIn = DEVICE_4_INPUT_GPIO,
     },
     .device5 = {
         .id = DEVICE_5_ID,
         .name = "Fan 2",
         .gpio = DEVICE_5_OUTPUT_GPIO,
-        .gpioIn = DEVICE_5_INPUT_GPIO
+        .gpioIn = DEVICE_5_INPUT_GPIO,
     },
     .device6 = {
         .id = DEVICE_6_ID,
         .name = "Socket",
         .gpio = DEVICE_6_OUTPUT_GPIO,
-        .gpioIn = DEVICE_6_INPUT_GPIO
+        .gpioIn = DEVICE_6_INPUT_GPIO,
     }
 };
 
@@ -132,3 +128,5 @@ void init_power_states();
 void init_nvs();
 void save_device_state(int device, int state);
 int read_device_state(int deviceId);
+
+void gpio_input_task(int gpioIn);

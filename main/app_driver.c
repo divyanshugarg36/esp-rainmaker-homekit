@@ -47,7 +47,7 @@ void app_indicator_set(bool state)
 /* Function to set the output power state of a device */
 static void set_power_state(int gpioPin, bool state)
 {
-    gpio_set_level(gpioPin, state);
+    gpio_set_level(gpioPin, !state);
     app_indicator_set(state);
 }
 
@@ -116,6 +116,7 @@ void app_input_driver_init() {
  * Also writes data to NVS
 **************************************************************/
 int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
+    printf("Setting state of device %d to %d\n", deviceId, state);
     switch (deviceId) {
         case DEVICE_1_ID:
             if (g_power_state1 != state) {
