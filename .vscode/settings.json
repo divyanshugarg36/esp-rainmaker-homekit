@@ -28,7 +28,8 @@
         "queue.h": "c",
         "gpio.h": "c",
         "iot_button.h": "c",
-        "aht10.h": "c"
+        "aht10.h": "c",
+        "rmaker_custom_params.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

@@ -31,11 +31,10 @@
 #include "app_wifi_with_homekit.h"
 #include "app_priv.h"
 
+// Custom Components
 #include "aht10.h"
 #include "tm1637.h"
-
-// Custom code
-#include "../components/rmaker_custom/custom_params.h"
+#include "rmaker_custom_params.h"
 
 static const char *TAG = "app_main";
 
