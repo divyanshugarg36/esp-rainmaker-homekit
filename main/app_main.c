@@ -31,6 +31,9 @@
 #include "app_wifi_with_homekit.h"
 #include "app_priv.h"
 
+#include "aht10.h"
+#include "tm1637.h"
+
 // Custom code
 #include "../components/rmaker_custom/custom_params.h"
 
@@ -240,6 +243,45 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+void tm1637_set_temperature(tm1637_lcd_t * lcd, uint8_t temperature) {
+    tm1637_set_segment_number(lcd, 0, (temperature / 10) % 10, false);  // Tens place
+    tm1637_set_segment_number(lcd, 1, temperature % 10, false);    // Ones place
+    tm1637_set_segment_raw(lcd, 2, 0x63);  // Degree symbol
+    tm1637_set_segment_raw(lcd, 3, tm1637_symbols[12]);  // 'C' character
+}
+
+void tm1637_set_humidity(tm1637_lcd_t * lcd, uint8_t humidity) {
+    tm1637_set_segment_raw(lcd, 0, 0x76);  // H character
+    tm1637_set_segment_raw(lcd, 1, 0x40);  // Dash symbol
+    tm1637_set_segment_number(lcd, 2, (humidity / 10) % 10, false);  // Tens place
+    tm1637_set_segment_number(lcd, 3, humidity % 10, false);    // Ones place
+}
+
+void my_task1(void *pvParameters) {
+    const gpio_num_t LCD_CLK = 18;
+    const gpio_num_t LCD_DTA = 19;
+    float temperature = 0.0, humidity = 0.0;
+    tm1637_lcd_t *lcd = tm1637_init(LCD_CLK, LCD_DTA);
+
+    int brightness = 0;
+    int isHumidity = 0;
+    while (1) {
+        aht10_get_temp_humidity(&temperature, &humidity);
+        printf("Temperature: %.2f °C, Humidity: %.2f %%\n", temperature, humidity);
+
+        tm1637_set_brightness(lcd, brightness);
+        brightness = (brightness + 1) % 8;
+
+        if (isHumidity == 0) {
+            tm1637_set_humidity(lcd, (uint8_t)humidity);
+        } else {
+            tm1637_set_temperature(lcd, (uint8_t)temperature);
+        }
+        isHumidity = !isHumidity;
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
 void app_main()
 {
     /* Initialize Application specific hardware drivers and
@@ -381,4 +423,8 @@ void app_main()
         vTaskDelay(5000/portTICK_PERIOD_MS);
         abort();
     }
+
+    i2c_master_init();
+    aht10_init();
+    xTaskCreate(my_task1, "DelayedTask1", 2048, NULL, 1, NULL);
 }

@@ -150,7 +150,7 @@ dependencies:
       type: service
     version: 1.0.20~2
   espressif/mdns:
-    component_hash: 4e21149422be01c24d4b1d4dec64fa07d136d8c5d234e931f3ebf375cbde51a0
+    component_hash: 26d0b8b207c7d8382cb3c103a9add9c75ca4dc0ef172b03a98af2c2254b2792b
     dependencies:
     - name: idf
       require: private
@@ -158,7 +158,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com/
       type: service
-    version: 1.5.2
+    version: 1.6.0
   espressif/network_provisioning:
     component_hash: 1c0f76f4a37c3f2101ae9735e9da901ef4469a07af9cc075fc8f08fee43281e4
     dependencies:

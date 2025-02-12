@@ -27,6 +27,8 @@
         "esp_rmaker_console.h": "c",
         "queue.h": "c",
         "gpio.h": "c",
-        "iot_button.h": "c"
-    }
+        "iot_button.h": "c",
+        "aht10.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }
