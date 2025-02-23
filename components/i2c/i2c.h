@@ -16,5 +16,6 @@
 
 // Function declarations
 void i2c_master_init();
+bool check_i2c_device(uint8_t address);
 
 #endif // I2C_H

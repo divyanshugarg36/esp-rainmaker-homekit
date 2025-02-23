@@ -45,12 +45,19 @@ esp_rmaker_device_t *device3;
 esp_rmaker_device_t *device4;
 esp_rmaker_device_t *device5;
 esp_rmaker_device_t *device6;
+esp_rmaker_device_t *temperatureDevice;
+esp_rmaker_device_t *humidityDevice;
+
 esp_rmaker_param_t *power_param1;
 esp_rmaker_param_t *power_param2;
 esp_rmaker_param_t *power_param3;
 esp_rmaker_param_t *power_param4;
 esp_rmaker_param_t *power_param5;
 esp_rmaker_param_t *power_param6;
+esp_rmaker_param_t *temperature_param;
+esp_rmaker_param_t *humidity_param;
+
+bool isAHT10Connected = false;
 
 void IRAM_ATTR gpio_input_task(int gpioIn)
 {
@@ -318,6 +325,11 @@ void app_main()
         abort();
     }
 
+    /* Initialize I2C. */
+    i2c_master_init();
+    isAHT10Connected = check_i2c_device(AHT10_ADDR);
+
+
     /* Create a Switch device.
      * You can optionally use the helper API esp_rmaker_switch_device_create() to
      * avoid writing code for adding the name and power parameters.
@@ -328,6 +340,8 @@ void app_main()
     device4 = esp_rmaker_device_create(deviceList.device4.name, ESP_RMAKER_DEVICE_FAN, NULL);
     device5 = esp_rmaker_device_create(deviceList.device5.name, ESP_RMAKER_DEVICE_FAN, NULL);
     device6 = esp_rmaker_device_create(deviceList.device6.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    temperatureDevice = esp_rmaker_device_create(deviceList.temperatureDevice.name, ESP_RMAKER_DEVICE_TEMP_SENSOR, NULL);
+    humidityDevice = esp_rmaker_device_create(deviceList.humidityDevice.name, ESP_RMAKER_DEVICE_HUMIDITY_SENSOR, NULL);
 
     /* Add the write callback for the device. We aren't registering any read callback yet as
      * it is for future use.
@@ -338,6 +352,8 @@ void app_main()
     esp_rmaker_device_add_cb(device4, write_cb, NULL);
     esp_rmaker_device_add_cb(device5, write_cb, NULL);
     esp_rmaker_device_add_cb(device6, write_cb, NULL);
+    esp_rmaker_device_add_cb(temperatureDevice, write_cb, NULL);
+    esp_rmaker_device_add_cb(humidityDevice, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
@@ -349,6 +365,8 @@ void app_main()
     esp_rmaker_device_add_param(device4, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device4.name));
     esp_rmaker_device_add_param(device5, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device5.name));
     esp_rmaker_device_add_param(device6, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device6.name));
+    esp_rmaker_device_add_param(temperatureDevice, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.temperatureDevice.name));
+    esp_rmaker_device_add_param(humidityDevice, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.humidityDevice.name));
 
     /* Add the standard power parameter (type: esp.param.power), which adds a boolean param
      * with a toggle switch ui-type.
@@ -359,13 +377,17 @@ void app_main()
     power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device4.id));
     power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device5.id));
     power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device6.id));
-    
+    temperature_param = esp_rmaker_param_create(ESP_RMAKER_DEF_TEMPERATURE_NAME, ESP_RMAKER_PARAM_TEMPERATURE, esp_rmaker_float(0), PROP_FLAG_READ);
+    humidity_param = esp_rmaker_param_create(ESP_RMAKER_DEF_HUMIDITY_NAME, ESP_RMAKER_PARAM_HUMIDITY, esp_rmaker_float(0), PROP_FLAG_READ);
+
     esp_rmaker_device_add_param(device1, power_param1);
     esp_rmaker_device_add_param(device2, power_param2);
     esp_rmaker_device_add_param(device3, power_param3);
     esp_rmaker_device_add_param(device4, power_param4);
     esp_rmaker_device_add_param(device5, power_param5);
     esp_rmaker_device_add_param(device6, power_param6);
+    esp_rmaker_device_add_param(temperatureDevice, temperature_param);
+    esp_rmaker_device_add_param(humidityDevice, humidity_param);
 
     /* Assign the power parameter as the primary, so that it can be controlled from the
      * home screen of the phone apps.
@@ -376,6 +398,8 @@ void app_main()
     esp_rmaker_device_assign_primary_param(device4, power_param4);
     esp_rmaker_device_assign_primary_param(device5, power_param5);
     esp_rmaker_device_assign_primary_param(device6, power_param6);
+    esp_rmaker_device_assign_primary_param(temperatureDevice, temperature_param);
+    esp_rmaker_device_assign_primary_param(humidityDevice, humidity_param);
 
     /* Add this switch device to the node */
     esp_rmaker_node_add_device(node, device1);
@@ -384,6 +408,10 @@ void app_main()
     esp_rmaker_node_add_device(node, device4);
     esp_rmaker_node_add_device(node, device5);
     esp_rmaker_node_add_device(node, device6);
+    if (isAHT10Connected) {
+        esp_rmaker_node_add_device(node, temperatureDevice);
+        esp_rmaker_node_add_device(node, humidityDevice);
+    }
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();
@@ -422,7 +450,8 @@ void app_main()
         abort();
     }
 
-    i2c_master_init();
-    aht10_init();
-    xTaskCreate(my_task1, "DelayedTask1", 2048, NULL, 1, NULL);
+    if (isAHT10Connected) {
+        aht10_init();
+        xTaskCreate(my_task1, "DelayedTask1", 2048, NULL, 1, NULL);
+    }
 }

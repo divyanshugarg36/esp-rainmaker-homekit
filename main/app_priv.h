@@ -33,6 +33,8 @@ extern esp_rmaker_device_t *device6;
 #define DEVICE_4_ID   4
 #define DEVICE_5_ID   5
 #define DEVICE_6_ID   6
+#define DEVICE_TEMPERATURE   101
+#define DEVICE_HUMIDITY   102
 
 /* This is the GPIO on which the power will be set */
 #define LCD_CLK 18
@@ -77,6 +79,8 @@ typedef struct {
     Switch device4;
     Switch device5;
     Switch device6;
+    Switch temperatureDevice;
+    Switch humidityDevice;
 } Devices;
 
 static const Devices deviceList = {
@@ -115,6 +119,14 @@ static const Devices deviceList = {
         .name = "Socket",
         .gpio = DEVICE_6_OUTPUT_GPIO,
         .gpioIn = DEVICE_6_INPUT_GPIO,
+    },
+    .temperatureDevice = {
+        .id = DEVICE_TEMPERATURE,
+        .name = "Temperature Sensor",
+    },
+    .humidityDevice = {
+        .id = DEVICE_HUMIDITY,
+        .name = "Humidity Sensor",
     }
 };
 
