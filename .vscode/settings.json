@@ -29,7 +29,9 @@
         "gpio.h": "c",
         "iot_button.h": "c",
         "aht10.h": "c",
-        "rmaker_custom_params.h": "c"
+        "rmaker_custom_params.h": "c",
+        "freertos.h": "c",
+        "stdio.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

@@ -35,12 +35,18 @@ extern esp_rmaker_device_t *device6;
 #define DEVICE_6_ID   6
 
 /* This is the GPIO on which the power will be set */
-#define DEVICE_1_OUTPUT_GPIO   16
-#define DEVICE_2_OUTPUT_GPIO   17
-#define DEVICE_3_OUTPUT_GPIO   18
-#define DEVICE_4_OUTPUT_GPIO   19
-#define DEVICE_5_OUTPUT_GPIO   22
-#define DEVICE_6_OUTPUT_GPIO   23
+#define LCD_CLK 18
+#define LCD_DTA 19
+
+#define I2C_MASTER_SCL_IO 22      // GPIO for SCL
+#define I2C_MASTER_SDA_IO 21      // GPIO for SDA
+
+#define DEVICE_1_OUTPUT_GPIO   23
+#define DEVICE_2_OUTPUT_GPIO   5
+#define DEVICE_3_OUTPUT_GPIO   17
+#define DEVICE_4_OUTPUT_GPIO   16
+#define DEVICE_5_OUTPUT_GPIO   4
+#define DEVICE_6_OUTPUT_GPIO   15
 
 #define DEVICE_1_INPUT_GPIO   14
 #define DEVICE_2_INPUT_GPIO   25
@@ -71,7 +77,6 @@ typedef struct {
     Switch device4;
     Switch device5;
     Switch device6;
-    Switch device7;
 } Devices;
 
 static const Devices deviceList = {

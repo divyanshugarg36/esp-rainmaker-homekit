@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS pcf8554.c
+    SRCS pcf8574.c
     INCLUDE_DIRS "."
     REQUIRES driver
 )

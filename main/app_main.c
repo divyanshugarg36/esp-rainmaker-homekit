@@ -32,6 +32,7 @@
 #include "app_priv.h"
 
 // Custom Components
+#include "i2c.h"
 #include "aht10.h"
 #include "tm1637.h"
 #include "rmaker_custom_params.h"
@@ -257,8 +258,6 @@ void tm1637_set_humidity(tm1637_lcd_t * lcd, uint8_t humidity) {
 }
 
 void my_task1(void *pvParameters) {
-    const gpio_num_t LCD_CLK = 18;
-    const gpio_num_t LCD_DTA = 19;
     float temperature = 0.0, humidity = 0.0;
     tm1637_lcd_t *lcd = tm1637_init(LCD_CLK, LCD_DTA);
 

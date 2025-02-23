@@ -72,7 +72,6 @@ void app_output_driver_init() {
     configure_gpio_output(deviceList.device1.id, deviceList.device4.gpio);
     configure_gpio_output(deviceList.device1.id, deviceList.device5.gpio);
     configure_gpio_output(deviceList.device1.id, deviceList.device6.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device7.gpio);
 }
 
 /*************************************************************

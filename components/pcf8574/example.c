@@ -1,9 +1,9 @@
 /**
  * @file app_main.c
- * @brief Example application for the PCF8554
+ * @brief Example application for the PCF8574
  */
 
-#include "pcf8554.h"
+#include "pcf8574.h"
 
 #define TAG "app"
 
