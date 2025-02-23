@@ -31,6 +31,8 @@ static hap_char_t *device3_char;
 static hap_char_t *device4_char;
 static hap_char_t *device5_char;
 static hap_char_t *device6_char;
+static hap_char_t *temperatureDevice_char;
+static hap_char_t *humidityDevice_char;
 
 #define QRCODE_BASE_URL  "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
 
@@ -466,6 +468,83 @@ esp_err_t app_homekit_start()
     hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device6.name));
 
 
+    if (isAHT10Connected) {
+        /*
+        * Bridge Accessory Temperature Sensor
+        */ 
+        hap_acc_cfg_t temperatureDevice_cfg = {
+            .name = deviceList.temperatureDevice.name,
+            .manufacturer = MANUFACTURER,
+            .model = MODEL,
+            .serial_num = SERIAL_NUMBER,
+            .fw_rev = FIRMWARE_REVISION,
+            .hw_rev = NULL,
+            .pv = "1.1.0",
+            .identify_routine = accessory_identify,
+            .cid = HAP_CID_BRIDGE,
+        };
+        /* Create accessory object */
+        accessory = hap_acc_create(&temperatureDevice_cfg);
+        /* Create the Temperature Sensor Service */
+
+        service = hap_serv_temperature_sensor_create(10);
+
+        /* Add Name Characteristic */
+        hap_serv_add_char(service, hap_char_name_create(deviceList.temperatureDevice.name));
+
+        /* Add Temperature Display Units Characteristic */
+        hap_serv_add_char(service, hap_char_temperature_display_units_create(0)); // 0 = Celsius, 1 = Fahrenheit
+        
+        /* Set the Accessory name as the Private data for the service,
+         * so that the correct accessory can be identified in the
+         * write callback
+         */
+        hap_serv_set_priv(service, strdup(deviceList.temperatureDevice.name));
+        /* Get pointer to the on_char to be used during update */
+        temperatureDevice_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_CURRENT_TEMPERATURE);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.temperatureDevice.name));
+
+
+
+        /*
+        * Bridge Accessory - Humidity Sensor
+        */ 
+        hap_acc_cfg_t humidityDevice_cfg = {
+            .name = deviceList.humidityDevice.name,
+            .manufacturer = MANUFACTURER,
+            .model = MODEL,
+            .serial_num = SERIAL_NUMBER,
+            .fw_rev = FIRMWARE_REVISION,
+            .hw_rev = NULL,
+            .pv = "1.1.0",
+            .identify_routine = accessory_identify,
+            .cid = HAP_CID_BRIDGE,
+        };
+
+        /* Create Accessory Object (Automatically adds Accessory Information Service) */
+        accessory = hap_acc_create(&humidityDevice_cfg);
+
+        /* Create the Humidity Sensor Service */
+        service = hap_serv_humidity_sensor_create(10); // Initial humidity value
+
+        /* Add Name Characteristic */
+        hap_serv_add_char(service, hap_char_name_create(deviceList.humidityDevice.name));
+
+        /* Set the Accessory name as Private Data */
+        hap_serv_set_priv(service, strdup(deviceList.humidityDevice.name));
+
+        /* Get Humidity Characteristic */
+        humidityDevice_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_CURRENT_RELATIVE_HUMIDITY);
+
+        /* Add Humidity Sensor Service to the Accessory */
+        hap_acc_add_serv(accessory, service);
+
+        /* Add Accessory to HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.humidityDevice.name));
+    }
 
 
     /* For production accessories, the setup code shouldn't be programmed on to

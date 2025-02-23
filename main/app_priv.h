@@ -22,6 +22,11 @@ extern esp_rmaker_device_t *device3;
 extern esp_rmaker_device_t *device4;
 extern esp_rmaker_device_t *device5;
 extern esp_rmaker_device_t *device6;
+extern esp_rmaker_param_t *temperature_param;
+extern esp_rmaker_param_t *humidity_param;
+
+extern bool isAHT10Connected;
+
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          0
@@ -122,11 +127,11 @@ static const Devices deviceList = {
     },
     .temperatureDevice = {
         .id = DEVICE_TEMPERATURE,
-        .name = "Temperature Sensor",
+        .name = "Temperature",
     },
     .humidityDevice = {
         .id = DEVICE_HUMIDITY,
-        .name = "Humidity Sensor",
+        .name = "Humidity",
     }
 };
 

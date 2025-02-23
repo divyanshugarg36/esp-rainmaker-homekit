@@ -352,8 +352,6 @@ void app_main()
     esp_rmaker_device_add_cb(device4, write_cb, NULL);
     esp_rmaker_device_add_cb(device5, write_cb, NULL);
     esp_rmaker_device_add_cb(device6, write_cb, NULL);
-    esp_rmaker_device_add_cb(temperatureDevice, write_cb, NULL);
-    esp_rmaker_device_add_cb(humidityDevice, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
