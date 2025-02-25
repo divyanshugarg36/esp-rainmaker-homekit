@@ -105,6 +105,21 @@ void tm1637_set_number_lead(tm1637_lcd_t * lcd, uint16_t number, const bool lead
  */
 void tm1637_set_number_lead_dot(tm1637_lcd_t * lcd, uint16_t number, const bool lead_zero, const uint8_t dot_mask);
 
+/**
+ * @brief Set temperature display
+ * @param lcd LCD object
+ * @param temperature Temperature value
+ */
+void tm1637_set_temperature(tm1637_lcd_t * lcd, uint8_t temperature);
+
+/**
+ * @brief Set humidity display
+ * @param lcd LCD object
+ * @param humidity Humidity value
+ */
+void tm1637_set_humidity(tm1637_lcd_t * lcd, uint8_t humidity);
+
+
 #ifdef __cplusplus
 }
 #endif

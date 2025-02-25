@@ -35,6 +35,7 @@
 #include "i2c.h"
 #include "aht10.h"
 #include "tm1637.h"
+#include "pcf8574.h"
 #include "rmaker_custom_params.h"
 
 static const char *TAG = "app_main";
@@ -58,6 +59,7 @@ esp_rmaker_param_t *temperature_param;
 esp_rmaker_param_t *humidity_param;
 
 bool isAHT10Connected = false;
+bool isPCF8574Connected = false;
 
 void IRAM_ATTR gpio_input_task(int gpioIn)
 {
@@ -250,20 +252,6 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-void tm1637_set_temperature(tm1637_lcd_t * lcd, uint8_t temperature) {
-    tm1637_set_segment_number(lcd, 0, (temperature / 10) % 10, false);  // Tens place
-    tm1637_set_segment_number(lcd, 1, temperature % 10, false);    // Ones place
-    tm1637_set_segment_raw(lcd, 2, 0x63);  // Degree symbol
-    tm1637_set_segment_raw(lcd, 3, tm1637_symbols[12]);  // 'C' character
-}
-
-void tm1637_set_humidity(tm1637_lcd_t * lcd, uint8_t humidity) {
-    tm1637_set_segment_raw(lcd, 0, 0x76);  // H character
-    tm1637_set_segment_raw(lcd, 1, 0x40);  // Dash symbol
-    tm1637_set_segment_number(lcd, 2, (humidity / 10) % 10, false);  // Tens place
-    tm1637_set_segment_number(lcd, 3, humidity % 10, false);    // Ones place
-}
-
 void my_task1(void *pvParameters) {
     float temperature = 0.0, humidity = 0.0;
     tm1637_lcd_t *lcd = tm1637_init(LCD_CLK, LCD_DTA);
@@ -287,12 +275,27 @@ void my_task1(void *pvParameters) {
     }
 }
 
+void my_task2(void *pvParameters) {
+    uint8_t data;
+    while (1) {
+        pcf8574_read(&data);
+        printf("PCF8574 Input Data: 0x%02X\n", data);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
 void app_main()
 {
     /* Initialize Application specific hardware drivers and
      * set initial state.
      */
     esp_rmaker_console_init();
+
+    /* Initialize I2C. */
+    i2c_master_init();
+    isAHT10Connected = check_i2c_device(AHT10_ADDR);
+    isPCF8574Connected = check_i2c_device(PCF8574_ADDR);
+
     app_driver_init();
     
     /* Initialize NVS. */
@@ -324,11 +327,6 @@ void app_main()
         vTaskDelay(5000/portTICK_PERIOD_MS);
         abort();
     }
-
-    /* Initialize I2C. */
-    i2c_master_init();
-    isAHT10Connected = check_i2c_device(AHT10_ADDR);
-
 
     /* Create a Switch device.
      * You can optionally use the helper API esp_rmaker_switch_device_create() to
@@ -451,5 +449,8 @@ void app_main()
     if (isAHT10Connected) {
         aht10_init();
         xTaskCreate(my_task1, "DelayedTask1", 2048, NULL, 1, NULL);
+    }
+    if (isPCF8574Connected) {
+        xTaskCreate(my_task2, "DelayedTask2", 2048, NULL, 1, NULL);
     }
 }

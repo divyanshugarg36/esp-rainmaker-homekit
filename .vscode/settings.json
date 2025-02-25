@@ -31,7 +31,8 @@
         "aht10.h": "c",
         "rmaker_custom_params.h": "c",
         "freertos.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "pcf8574.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

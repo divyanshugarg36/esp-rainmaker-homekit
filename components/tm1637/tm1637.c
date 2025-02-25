@@ -162,3 +162,17 @@ void tm1637_set_number_lead_dot(tm1637_lcd_t * lcd, uint16_t number, bool lead_z
 		tm1637_set_segment_number(lcd, 0, (number / 1000) % 10, dot_mask & 0x08);
 	}
 }
+
+void tm1637_set_temperature(tm1637_lcd_t * lcd, uint8_t temperature) {
+    tm1637_set_segment_number(lcd, 0, (temperature / 10) % 10, false);  // Tens place
+    tm1637_set_segment_number(lcd, 1, temperature % 10, false);    // Ones place
+    tm1637_set_segment_raw(lcd, 2, 0x63);  // Degree symbol
+    tm1637_set_segment_raw(lcd, 3, tm1637_symbols[12]);  // 'C' character
+}
+
+void tm1637_set_humidity(tm1637_lcd_t * lcd, uint8_t humidity) {
+    tm1637_set_segment_raw(lcd, 0, 0x76);  // H character
+    tm1637_set_segment_raw(lcd, 1, 0x40);  // Dash symbol
+    tm1637_set_segment_number(lcd, 2, (humidity / 10) % 10, false);  // Tens place
+    tm1637_set_segment_number(lcd, 3, humidity % 10, false);    // Ones place
+}
