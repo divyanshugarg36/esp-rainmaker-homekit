@@ -61,9 +61,8 @@ esp_rmaker_param_t *humidity_param;
 bool isAHT10Connected = false;
 bool isPCF8574Connected = false;
 
-void IRAM_ATTR gpio_input_task(int gpioIn)
+void IRAM_ATTR gpio_input_task(int gpioIn, int val)
 {
-    int val = !gpio_get_level(gpioIn);
     switch (gpioIn)
     {
     case DEVICE_1_PCF_GPIO:
@@ -116,8 +115,7 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
     default:
         break;
     }
-    printf("GPIO[%d] intr, val: %d\n", gpioIn, gpio_get_level(gpioIn));
-    printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
+    // printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
 }
 
 /* Callback to handle commands received from the RainMaker cloud */
@@ -275,17 +273,37 @@ void my_task1(void *pvParameters) {
     }
 }
 
-void my_task2(void *pvParameters) {
+void check_inputs(uint8_t *last_state) {
     uint8_t current_state;
-    uint8_t last_state = 0xFF;
-    while (1) {
-        pcf8574_read(&current_state);
-        // printf("PCF8574 Input Data: 0x%02X\n", current_state);
-        if(current_state != last_state) {   
-            printf("PCF8574 Input Data: 0x%02X 0x%02X\n", current_state, last_state);
+    pcf8574_read(&current_state);  // Read from PCF8574
+
+    // printf("Current State: 0x%02X, Last State: 0x%02X\n", current_state, *last_state);
+
+    uint8_t changed_pins = current_state ^ *last_state; // XOR to detect changes
+
+    if (changed_pins == 0) {
+        return;  // No changes, exit function
+    }
+
+    for (int i = 0; i < 8; i++) {
+        if (changed_pins & (1 << i)) { // Check which bit changed
+            // printf("GPIO %d changed to %d\n", i, (current_state >> i) & 1);
+            gpio_input_task(i, !((current_state >> i) & 1));
+            // Perform operation here based on GPIO state
         }
-        last_state = current_state;
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
+    *last_state = current_state; // Update last known state
+}
+
+void my_task2(void *pvParameters) {
+    uint8_t last_state;
+    pcf8574_read(&last_state);  // Read initial state
+    printf("Initial State: 0x%02X\n", last_state);
+
+    while (1) {
+        check_inputs(&last_state);  // Check for changes
+        vTaskDelay(pdMS_TO_TICKS(100));  // Reduced delay to 500ms for better response
     }
 }
 

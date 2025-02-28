@@ -157,4 +157,4 @@ void init_nvs();
 void save_device_state(int device, int state);
 int read_device_state(int deviceId);
 
-void gpio_input_task(int gpioIn);
+void gpio_input_task(int gpioIn, int val);
