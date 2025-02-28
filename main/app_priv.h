@@ -26,6 +26,7 @@ extern esp_rmaker_param_t *temperature_param;
 extern esp_rmaker_param_t *humidity_param;
 
 extern bool isAHT10Connected;
+extern bool isPCF8574Connected;
 
 
 /* This is the button that is used for toggling the power */
@@ -55,12 +56,17 @@ extern bool isAHT10Connected;
 #define DEVICE_5_OUTPUT_GPIO   4
 #define DEVICE_6_OUTPUT_GPIO   15
 
-#define DEVICE_1_INPUT_GPIO   14
-#define DEVICE_2_INPUT_GPIO   25
-#define DEVICE_3_INPUT_GPIO   26
-#define DEVICE_4_INPUT_GPIO   27
-#define DEVICE_5_INPUT_GPIO   32
-#define DEVICE_6_INPUT_GPIO   33
+// AVAILABLE_GPIOS 14, 27, 32, 33
+
+#define DEVICE_1_PCF_GPIO   0
+#define DEVICE_2_PCF_GPIO   1
+#define DEVICE_3_PCF_GPIO   2
+#define DEVICE_4_PCF_GPIO   3
+#define DEVICE_5_PCF_GPIO   4
+#define DEVICE_6_PCF_GPIO   5
+
+#define PROCESS_INDICATOR   25
+#define POWER_INDICATOR     26
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -93,37 +99,37 @@ static const Devices deviceList = {
         .id = DEVICE_1_ID,
         .name = "Main Light",
         .gpio = DEVICE_1_OUTPUT_GPIO,
-        .gpioIn = DEVICE_1_INPUT_GPIO,
+        .gpioIn = DEVICE_1_PCF_GPIO,
     },
     .device2 = {
         .id = DEVICE_2_ID,
         .name = "Small Light 1",
         .gpio = DEVICE_2_OUTPUT_GPIO,
-        .gpioIn = DEVICE_2_INPUT_GPIO,
+        .gpioIn = DEVICE_2_PCF_GPIO,
     },
     .device3 = {
         .id = DEVICE_3_ID,
         .name = "Small Light 2",
         .gpio = DEVICE_3_OUTPUT_GPIO,
-        .gpioIn = DEVICE_3_INPUT_GPIO,
+        .gpioIn = DEVICE_3_PCF_GPIO,
     },
     .device4 = {
         .id = DEVICE_4_ID,
         .name = "Fan 1",
         .gpio = DEVICE_4_OUTPUT_GPIO,
-        .gpioIn = DEVICE_4_INPUT_GPIO,
+        .gpioIn = DEVICE_4_PCF_GPIO,
     },
     .device5 = {
         .id = DEVICE_5_ID,
         .name = "Fan 2",
         .gpio = DEVICE_5_OUTPUT_GPIO,
-        .gpioIn = DEVICE_5_INPUT_GPIO,
+        .gpioIn = DEVICE_5_PCF_GPIO,
     },
     .device6 = {
         .id = DEVICE_6_ID,
         .name = "Socket",
         .gpio = DEVICE_6_OUTPUT_GPIO,
-        .gpioIn = DEVICE_6_INPUT_GPIO,
+        .gpioIn = DEVICE_6_PCF_GPIO,
     },
     .temperatureDevice = {
         .id = DEVICE_TEMPERATURE,

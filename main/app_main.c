@@ -66,14 +66,14 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
     int val = !gpio_get_level(gpioIn);
     switch (gpioIn)
     {
-    case DEVICE_1_INPUT_GPIO:
+    case DEVICE_1_PCF_GPIO:
         app_driver_set_state(deviceList.device1.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val));
         app_homekit_update_state(deviceList.device1.id, val);
         break;
-    case DEVICE_2_INPUT_GPIO:
+    case DEVICE_2_PCF_GPIO:
         app_driver_set_state(deviceList.device2.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
@@ -81,7 +81,7 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
         );
         app_homekit_update_state(deviceList.device2.id, val);
         break;
-    case DEVICE_3_INPUT_GPIO:
+    case DEVICE_3_PCF_GPIO:
         app_driver_set_state(deviceList.device3.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
@@ -89,7 +89,7 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
         );
         app_homekit_update_state(deviceList.device3.id, val);
         break;
-    case DEVICE_4_INPUT_GPIO:
+    case DEVICE_4_PCF_GPIO:
         app_driver_set_state(deviceList.device4.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
@@ -97,7 +97,7 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
         );
         app_homekit_update_state(deviceList.device4.id, val);
         break;
-    case DEVICE_5_INPUT_GPIO:
+    case DEVICE_5_PCF_GPIO:
         app_driver_set_state(deviceList.device5.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
@@ -105,7 +105,7 @@ void IRAM_ATTR gpio_input_task(int gpioIn)
         );
         app_homekit_update_state(deviceList.device5.id, val);
         break;
-    case DEVICE_6_INPUT_GPIO:
+    case DEVICE_6_PCF_GPIO:
         app_driver_set_state(deviceList.device6.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
@@ -276,10 +276,15 @@ void my_task1(void *pvParameters) {
 }
 
 void my_task2(void *pvParameters) {
-    uint8_t data;
+    uint8_t current_state;
+    uint8_t last_state = 0xFF;
     while (1) {
-        pcf8574_read(&data);
-        printf("PCF8574 Input Data: 0x%02X\n", data);
+        pcf8574_read(&current_state);
+        // printf("PCF8574 Input Data: 0x%02X\n", current_state);
+        if(current_state != last_state) {   
+            printf("PCF8574 Input Data: 0x%02X 0x%02X\n", current_state, last_state);
+        }
+        last_state = current_state;
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

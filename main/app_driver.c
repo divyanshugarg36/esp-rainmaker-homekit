@@ -9,7 +9,6 @@
 
 #include <sdkconfig.h>
 
-#include <iot_button.h>
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_params.h> 
 
@@ -44,18 +43,30 @@ void app_indicator_set(bool state)
     }
 }
 
+static void flash_light_task(void *pvParameters) {
+    bool state = false;
+    for (int i = 0; i < 5; i++) {
+        gpio_set_level(PROCESS_INDICATOR, state);
+        vTaskDelay(pdMS_TO_TICKS(50));
+        state = !state;
+    }
+    vTaskDelete(NULL);
+}
+
 /* Function to set the output power state of a device */
 static void set_power_state(int gpioPin, bool state)
 {
     gpio_set_level(gpioPin, !state);
     app_indicator_set(state);
+    // Run flash_light in a separate task to avoid blocking
+    xTaskCreate(flash_light_task, "FlashLightTask", 2048, NULL, 5, NULL);
 }
 
 /*************************************************************
  * Functions to initialize the Output GPIOs
 **************************************************************/
 
-void configure_gpio_output(int deviceId, int gpioPin) {
+void configure_gpio_output(int gpioPin) {
     /* Configure power */
     gpio_config_t io_conf = {
         .mode = GPIO_MODE_OUTPUT,
@@ -66,48 +77,15 @@ void configure_gpio_output(int deviceId, int gpioPin) {
 }
 
 void app_output_driver_init() {
-    configure_gpio_output(deviceList.device1.id, deviceList.device1.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device2.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device3.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device4.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device5.gpio);
-    configure_gpio_output(deviceList.device1.id, deviceList.device6.gpio);
-}
-
-/*************************************************************
- * Functions to initialize the Input GPIOs
-**************************************************************/
-
-void IRAM_ATTR button_callback(void* arg)
-{
-    int gpioIn = (int) arg;
-    gpio_input_task(gpioIn);
-}
-
-void app_input_driver_init() {
-    button_handle_t button_1 = iot_button_create(DEVICE_1_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_1, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_1_INPUT_GPIO);
-    iot_button_set_evt_cb(button_1, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_1_INPUT_GPIO);
-
-    button_handle_t button_2 = iot_button_create(DEVICE_2_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_2, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_2_INPUT_GPIO);
-    iot_button_set_evt_cb(button_2, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_2_INPUT_GPIO);
-
-    button_handle_t button_3 = iot_button_create(DEVICE_3_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_3, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_3_INPUT_GPIO);
-    iot_button_set_evt_cb(button_3, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_3_INPUT_GPIO);
-
-    button_handle_t button_4 = iot_button_create(DEVICE_4_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_4, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_4_INPUT_GPIO);
-    iot_button_set_evt_cb(button_4, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_4_INPUT_GPIO);
-
-    button_handle_t button_5 = iot_button_create(DEVICE_5_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_5, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_5_INPUT_GPIO);
-    iot_button_set_evt_cb(button_5, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_5_INPUT_GPIO);
-
-    button_handle_t button_6 = iot_button_create(DEVICE_6_INPUT_GPIO, BUTTON_ACTIVE_LOW);
-    iot_button_set_evt_cb(button_6, BUTTON_CB_PUSH, button_callback, (void*) DEVICE_6_INPUT_GPIO);
-    iot_button_set_evt_cb(button_6, BUTTON_CB_RELEASE, button_callback, (void*) DEVICE_6_INPUT_GPIO);
+    configure_gpio_output(deviceList.device1.gpio);
+    configure_gpio_output(deviceList.device2.gpio);
+    configure_gpio_output(deviceList.device3.gpio);
+    configure_gpio_output(deviceList.device4.gpio);
+    configure_gpio_output(deviceList.device5.gpio);
+    configure_gpio_output(deviceList.device6.gpio);
+    configure_gpio_output(POWER_INDICATOR);
+    configure_gpio_output(PROCESS_INDICATOR);
+    set_power_state(POWER_INDICATOR, false);
 }
 
 /*************************************************************
@@ -207,9 +185,4 @@ void app_driver_init() {
 
     ws2812_led_init();
     app_indicator_set(true);
-
-    // This method will read initial state of the devices from Input GPIOs
-    // it won't call rmaker and hma methods since they havent been initialized
-    // But they will set the default state which further activates the devices
-    app_input_driver_init();
 }

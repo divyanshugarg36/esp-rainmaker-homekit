@@ -28,3 +28,10 @@ esp_err_t pcf8574_read(uint8_t *data) {
     i2c_cmd_link_delete(cmd);
     return ret;
 }
+
+int get_pcf8574_pin_state(uint8_t gpio) {
+    if (gpio > 7) return -1;  // Invalid GPIO number
+    uint8_t data;
+    pcf8574_read(&data);  // Read the PCF8574 state
+    return (data >> gpio) & 1;  // Extract bit value (0 or 1)
+}

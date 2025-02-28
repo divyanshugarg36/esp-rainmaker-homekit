@@ -13,5 +13,6 @@
 // Function declarations
 esp_err_t pcf8574_write(uint8_t data);
 esp_err_t pcf8574_read(uint8_t *data);
+int get_pcf8574_pin_state(uint8_t gpio);
 
 #endif // PCF8574_H
