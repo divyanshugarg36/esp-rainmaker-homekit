@@ -40,6 +40,8 @@
 
 static const char *TAG = "app_main";
 
+esp_rmaker_node_t *node;
+
 esp_rmaker_device_t *device1;
 esp_rmaker_device_t *device2;
 esp_rmaker_device_t *device3;
@@ -56,10 +58,26 @@ esp_rmaker_param_t *power_param4;
 esp_rmaker_param_t *power_param5;
 esp_rmaker_param_t *power_param6;
 esp_rmaker_param_t *temperature_param;
+esp_rmaker_param_t *temperature_brightness_param;
+esp_rmaker_param_t *temperature_display_param;
 esp_rmaker_param_t *humidity_param;
+
+tm1637_lcd_t *lcd;
+float temperature = 0.0, humidity = 0.0;
+int brightness = 0;
+int displayMode = 0;
 
 bool isAHT10Connected = false;
 bool isPCF8574Connected = false;
+
+void setDisplayData() {
+    tm1637_set_brightness(lcd, brightness);
+    if (displayMode == 0) {
+        tm1637_set_temperature(lcd, (uint8_t)temperature);
+    } else {
+        tm1637_set_humidity(lcd, (uint8_t)humidity);
+    }
+}
 
 void IRAM_ATTR gpio_input_task(int gpioIn, int val)
 {
@@ -155,6 +173,18 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(deviceList.device6.id, val.val.b);
         }
+    } else if (device == temperatureDevice) {
+        // TODO: Handle HomeKit Integration
+        if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
+            brightness = val.val.i;
+            esp_rmaker_param_update(param, val);
+            printf("Temperature brightness updated to %d\n", val.val.i);
+        } else if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_LCD_MODE_NAME) == 0) {
+            displayMode = val.val.i;
+            esp_rmaker_param_update(param, val);
+            printf("Display Mode updated to %d\n", val.val.i);
+        }
+        setDisplayData();
     }
     return ESP_OK;
 }
@@ -251,25 +281,18 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 }
 
 void my_task1(void *pvParameters) {
-    float temperature = 0.0, humidity = 0.0;
-    tm1637_lcd_t *lcd = tm1637_init(LCD_CLK, LCD_DTA);
-
-    int brightness = 0;
-    int isHumidity = 0;
     while (1) {
         aht10_get_temp_humidity(&temperature, &humidity);
-        printf("Temperature: %.2f °C, Humidity: %.2f %%\n", temperature, humidity);
-
-        tm1637_set_brightness(lcd, brightness);
-        brightness = (brightness + 1) % 8;
-
-        if (isHumidity == 0) {
-            tm1637_set_humidity(lcd, (uint8_t)humidity);
-        } else {
-            tm1637_set_temperature(lcd, (uint8_t)temperature);
+        if(node) {
+            esp_rmaker_param_update_and_report(
+                temperature_param,
+                esp_rmaker_float(temperature));
+            esp_rmaker_param_update_and_report(
+                humidity_param,
+                esp_rmaker_float(humidity));
         }
-        isHumidity = !isHumidity;
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        setDisplayData();
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
 
@@ -316,6 +339,9 @@ void app_main()
 
     /* Initialize I2C. */
     i2c_master_init();
+
+    lcd = tm1637_init(LCD_CLK, LCD_DTA);
+
     isAHT10Connected = check_i2c_device(AHT10_ADDR);
     isPCF8574Connected = check_i2c_device(PCF8574_ADDR);
 
@@ -344,7 +370,8 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "Garg's Home", "Main Hall");
+
+    node = esp_rmaker_node_init(&rainmaker_cfg, "Garg's Home", "Main Hall");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -373,6 +400,7 @@ void app_main()
     esp_rmaker_device_add_cb(device4, write_cb, NULL);
     esp_rmaker_device_add_cb(device5, write_cb, NULL);
     esp_rmaker_device_add_cb(device6, write_cb, NULL);
+    esp_rmaker_device_add_cb(temperatureDevice, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
      * user friendly custom name from the phone apps. All devices are recommended to have this
@@ -397,6 +425,8 @@ void app_main()
     power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device5.id));
     power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device6.id));
     temperature_param = esp_rmaker_param_create(ESP_RMAKER_DEF_TEMPERATURE_NAME, ESP_RMAKER_PARAM_TEMPERATURE, esp_rmaker_float(0), PROP_FLAG_READ);
+    temperature_brightness_param = esp_rmaker_lcd_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, 0);
+    temperature_display_param = esp_rmaker_lcd_mode_param_create(ESP_RMAKER_DEF_LCD_MODE_NAME, 0);
     humidity_param = esp_rmaker_param_create(ESP_RMAKER_DEF_HUMIDITY_NAME, ESP_RMAKER_PARAM_HUMIDITY, esp_rmaker_float(0), PROP_FLAG_READ);
 
     esp_rmaker_device_add_param(device1, power_param1);
@@ -406,6 +436,8 @@ void app_main()
     esp_rmaker_device_add_param(device5, power_param5);
     esp_rmaker_device_add_param(device6, power_param6);
     esp_rmaker_device_add_param(temperatureDevice, temperature_param);
+    esp_rmaker_device_add_param(temperatureDevice, temperature_brightness_param);
+    esp_rmaker_device_add_param(temperatureDevice, temperature_display_param);
     esp_rmaker_device_add_param(humidityDevice, humidity_param);
 
     /* Assign the power parameter as the primary, so that it can be controlled from the
@@ -471,7 +503,7 @@ void app_main()
 
     if (isAHT10Connected) {
         aht10_init();
-        xTaskCreate(my_task1, "DelayedTask1", 2048, NULL, 1, NULL);
+        xTaskCreate(my_task1, "DelayedTask1", 4096, NULL, 1, NULL);
     }
     if (isPCF8574Connected) {
         xTaskCreate(my_task2, "DelayedTask2", 2048, NULL, 1, NULL);
