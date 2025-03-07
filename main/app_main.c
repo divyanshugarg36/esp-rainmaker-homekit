@@ -79,6 +79,18 @@ void setDisplayData() {
     }
 }
 
+int display_to_percent(int input) {
+    if (input < 0) input = 0;
+    if (input > 7) input = 7;
+    return (input * 100) / 7;
+}
+
+int percent_to_display(int input) {
+    if (input < 0) input = 0;    // Clamp below 0
+    if (input > 100) input = 100; // Clamp above 100
+    return (input * 7) / 100;
+}
+
 void IRAM_ATTR gpio_input_task(int gpioIn, int val)
 {
     switch (gpioIn)
@@ -173,18 +185,22 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(deviceList.device6.id, val.val.b);
         }
-    } else if (device == temperatureDevice) {
-        // TODO: Handle HomeKit Integration
-        if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
+    } else if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
+        if (device == temperatureDevice) {
+            printf("Brightness = %d\n", val.val.i);
             brightness = val.val.i;
             esp_rmaker_param_update(param, val);
-            printf("Temperature brightness updated to %d\n", val.val.i);
-        } else if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_LCD_MODE_NAME) == 0) {
+            app_homekit_update_brightness_state(DEVICE_TEMPERATURE_BRIGHTNESS, val.val.i);
+            setDisplayData();
+        }
+    } else if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_LCD_MODE_NAME) == 0) {
+        if (device == temperatureDevice) {
+            printf("LCD Mode = %d\n", val.val.i);
             displayMode = val.val.i;
             esp_rmaker_param_update(param, val);
-            printf("Display Mode updated to %d\n", val.val.i);
+            app_homekit_update_state(DEVICE_TEMPERATURE_MODE, val.val.i);
+            setDisplayData();
         }
-        setDisplayData();
     }
     return ESP_OK;
 }
@@ -290,9 +306,11 @@ void my_task1(void *pvParameters) {
             esp_rmaker_param_update_and_report(
                 humidity_param,
                 esp_rmaker_float(humidity));
+            app_homekit_update_temperature_state(DEVICE_TEMPERATURE, temperature);
+            app_homekit_update_temperature_state(DEVICE_HUMIDITY, humidity);
         }
         setDisplayData();
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        vTaskDelay(pdMS_TO_TICKS(60000)); // Updates after 60 seconds
     }
 }
 

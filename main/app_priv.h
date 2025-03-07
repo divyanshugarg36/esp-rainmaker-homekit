@@ -22,8 +22,18 @@ extern esp_rmaker_device_t *device3;
 extern esp_rmaker_device_t *device4;
 extern esp_rmaker_device_t *device5;
 extern esp_rmaker_device_t *device6;
+extern esp_rmaker_device_t *temperatureDevice;
+
 extern esp_rmaker_param_t *temperature_param;
+extern esp_rmaker_param_t *temperature_brightness_param;
+extern esp_rmaker_param_t *temperature_display_param;
 extern esp_rmaker_param_t *humidity_param;
+
+extern int brightness;
+extern int displayMode;
+extern int percent_to_display(int input);
+extern int display_to_percent(int input);
+extern void setDisplayData();
 
 extern bool isAHT10Connected;
 extern bool isPCF8574Connected;
@@ -41,6 +51,9 @@ extern bool isPCF8574Connected;
 #define DEVICE_6_ID   6
 #define DEVICE_TEMPERATURE   101
 #define DEVICE_HUMIDITY   102
+
+#define DEVICE_TEMPERATURE_MODE   103
+#define DEVICE_TEMPERATURE_BRIGHTNESS   104
 
 /* This is the GPIO on which the power will be set */
 #define LCD_CLK 18
@@ -150,6 +163,8 @@ bool app_driver_get_state(int deviceId);
 
 esp_err_t app_homekit_start();
 esp_err_t app_homekit_update_state(int deviceId, bool state);
+esp_err_t app_homekit_update_temperature_state(int deviceId, float state);
+esp_err_t app_homekit_update_brightness_state(int deviceId, int state);
 
 void init_power_states();
 
