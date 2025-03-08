@@ -14,14 +14,14 @@
 #define SERIAL_NUMBER "001122334455"
 #define FIRMWARE_REVISION "1.0"
 
-extern QueueHandle_t gpio_input_evt_queue;
-
 extern esp_rmaker_device_t *device1;
 extern esp_rmaker_device_t *device2;
 extern esp_rmaker_device_t *device3;
 extern esp_rmaker_device_t *device4;
 extern esp_rmaker_device_t *device5;
 extern esp_rmaker_device_t *device6;
+extern esp_rmaker_device_t *device7;
+extern esp_rmaker_device_t *device8;
 extern esp_rmaker_device_t *temperatureDevice;
 
 extern esp_rmaker_param_t *temperature_param;
@@ -49,6 +49,8 @@ extern bool isPCF8574Connected;
 #define DEVICE_4_ID   4
 #define DEVICE_5_ID   5
 #define DEVICE_6_ID   6
+#define DEVICE_7_ID   7
+#define DEVICE_8_ID   8
 #define DEVICE_TEMPERATURE   101
 #define DEVICE_HUMIDITY   102
 
@@ -68,8 +70,10 @@ extern bool isPCF8574Connected;
 #define DEVICE_4_OUTPUT_GPIO   16
 #define DEVICE_5_OUTPUT_GPIO   4
 #define DEVICE_6_OUTPUT_GPIO   15
+#define DEVICE_7_OUTPUT_GPIO   32
+#define DEVICE_8_OUTPUT_GPIO   33
 
-// AVAILABLE_GPIOS 14, 27, 32, 33
+// AVAILABLE_GPIOS 14, 27
 
 #define DEVICE_1_PCF_GPIO   0
 #define DEVICE_2_PCF_GPIO   1
@@ -77,14 +81,11 @@ extern bool isPCF8574Connected;
 #define DEVICE_4_PCF_GPIO   3
 #define DEVICE_5_PCF_GPIO   4
 #define DEVICE_6_PCF_GPIO   5
+#define DEVICE_7_PCF_GPIO   6
+#define DEVICE_8_PCF_GPIO   7
 
 #define PROCESS_INDICATOR   25
 #define POWER_INDICATOR     26
-
-/* These values correspoind to H,S,V = 120,100,10 */
-#define DEFAULT_RED     0
-#define DEFAULT_GREEN   25
-#define DEFAULT_BLUE    0
 
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
@@ -103,6 +104,8 @@ typedef struct {
     Switch device4;
     Switch device5;
     Switch device6;
+    Switch device7;
+    Switch device8;
     Switch temperatureDevice;
     Switch humidityDevice;
 } Devices;
@@ -110,39 +113,51 @@ typedef struct {
 static const Devices deviceList = {
     .device1 = {
         .id = DEVICE_1_ID,
-        .name = "Main Light",
+        .name = "Inner Socket",
         .gpio = DEVICE_1_OUTPUT_GPIO,
         .gpioIn = DEVICE_1_PCF_GPIO,
     },
     .device2 = {
         .id = DEVICE_2_ID,
-        .name = "Small Light 1",
+        .name = "Table Socket R",
         .gpio = DEVICE_2_OUTPUT_GPIO,
         .gpioIn = DEVICE_2_PCF_GPIO,
     },
     .device3 = {
         .id = DEVICE_3_ID,
-        .name = "Small Light 2",
+        .name = "Big Lamp",
         .gpio = DEVICE_3_OUTPUT_GPIO,
         .gpioIn = DEVICE_3_PCF_GPIO,
     },
     .device4 = {
         .id = DEVICE_4_ID,
-        .name = "Fan 1",
+        .name = "Table Socket L",
         .gpio = DEVICE_4_OUTPUT_GPIO,
         .gpioIn = DEVICE_4_PCF_GPIO,
     },
     .device5 = {
         .id = DEVICE_5_ID,
-        .name = "Fan 2",
+        .name = "Outer bulb",
         .gpio = DEVICE_5_OUTPUT_GPIO,
         .gpioIn = DEVICE_5_PCF_GPIO,
     },
     .device6 = {
         .id = DEVICE_6_ID,
-        .name = "Socket",
+        .name = "Small Lamp",
         .gpio = DEVICE_6_OUTPUT_GPIO,
         .gpioIn = DEVICE_6_PCF_GPIO,
+    },
+    .device7 = {
+        .id = DEVICE_7_ID,
+        .name = "Ceiling Light",
+        .gpio = DEVICE_7_OUTPUT_GPIO,
+        .gpioIn = DEVICE_7_PCF_GPIO,
+    },
+    .device8 = {
+        .id = DEVICE_8_ID,
+        .name = "Ceiling Light 2",
+        .gpio = DEVICE_8_OUTPUT_GPIO,
+        .gpioIn = DEVICE_8_PCF_GPIO,
     },
     .temperatureDevice = {
         .id = DEVICE_TEMPERATURE,
@@ -154,8 +169,6 @@ static const Devices deviceList = {
     }
 };
 
-
-void app_indicator_set(bool state);
 void app_driver_init(void);
 int app_driver_set_state(int deviceId, bool state);
 
@@ -173,3 +186,4 @@ void save_device_state(int device, int state);
 int read_device_state(int deviceId);
 
 void gpio_input_task(int gpioIn, int val);
+bool compare_mac_addresses(const uint8_t mac1[6], const uint8_t mac2[6]);

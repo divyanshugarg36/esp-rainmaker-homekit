@@ -24,6 +24,8 @@ static bool g_power_state3 = BUTTON_ACTIVE_LOW;
 static bool g_power_state4 = BUTTON_ACTIVE_LOW;
 static bool g_power_state5 = BUTTON_ACTIVE_LOW;
 static bool g_power_state6 = BUTTON_ACTIVE_LOW;
+static bool g_power_state7 = BUTTON_ACTIVE_LOW;
+static bool g_power_state8 = BUTTON_ACTIVE_LOW;
 
 void init_power_states() {
     g_power_state1 = read_device_state(deviceList.device1.id);
@@ -32,15 +34,8 @@ void init_power_states() {
     g_power_state4 = read_device_state(deviceList.device4.id);
     g_power_state5 = read_device_state(deviceList.device5.id);
     g_power_state6 = read_device_state(deviceList.device6.id);
-}
-
-void app_indicator_set(bool state)
-{
-    if (state) {
-        ws2812_led_set_rgb(DEFAULT_RED, DEFAULT_GREEN, DEFAULT_BLUE);
-    } else {
-        ws2812_led_clear();
-    }
+    g_power_state7 = read_device_state(deviceList.device7.id);
+    g_power_state8 = read_device_state(deviceList.device8.id);
 }
 
 static void flash_light_task(void *pvParameters) {
@@ -57,7 +52,7 @@ static void flash_light_task(void *pvParameters) {
 static void set_power_state(int gpioPin, bool state)
 {
     gpio_set_level(gpioPin, !state);
-    app_indicator_set(state);
+    // app_indicator_set(state);
     // Run flash_light in a separate task to avoid blocking
     xTaskCreate(flash_light_task, "FlashLightTask", 2048, NULL, 5, NULL);
 }
@@ -83,8 +78,19 @@ void app_output_driver_init() {
     configure_gpio_output(deviceList.device4.gpio);
     configure_gpio_output(deviceList.device5.gpio);
     configure_gpio_output(deviceList.device6.gpio);
+    configure_gpio_output(deviceList.device7.gpio);
+    configure_gpio_output(deviceList.device8.gpio);
     configure_gpio_output(POWER_INDICATOR);
     configure_gpio_output(PROCESS_INDICATOR);
+
+    set_power_state(deviceList.device1.gpio, g_power_state1);
+    set_power_state(deviceList.device2.gpio, g_power_state2);
+    set_power_state(deviceList.device3.gpio, g_power_state3);
+    set_power_state(deviceList.device4.gpio, g_power_state4);
+    set_power_state(deviceList.device5.gpio, g_power_state5);
+    set_power_state(deviceList.device6.gpio, g_power_state6);
+    set_power_state(deviceList.device7.gpio, g_power_state7);
+    set_power_state(deviceList.device8.gpio, g_power_state8);
     set_power_state(POWER_INDICATOR, false);
 }
 
@@ -137,6 +143,20 @@ int IRAM_ATTR app_driver_set_state(int deviceId, bool state) {
                 save_device_state(deviceId, g_power_state6);
             }
             return ESP_OK;
+        case DEVICE_7_ID:
+            if (g_power_state7 != state) {
+                g_power_state7 = state;
+                set_power_state(deviceList.device7.gpio, g_power_state7);
+                save_device_state(deviceId, g_power_state7);
+            }
+            return ESP_OK;
+        case DEVICE_8_ID:
+            if (g_power_state8 != state) {
+                g_power_state8 = state;
+                set_power_state(deviceList.device8.gpio, g_power_state8);
+                save_device_state(deviceId, g_power_state8);
+            }
+            return ESP_OK;
         default:
             return ESP_FAIL;
     }
@@ -160,6 +180,10 @@ bool IRAM_ATTR app_driver_get_state(int deviceId) {
         return g_power_state5;
     case DEVICE_6_ID:
         return g_power_state6;
+    case DEVICE_7_ID:
+        return g_power_state7;
+    case DEVICE_8_ID:
+        return g_power_state8;
     default:
         return false;
     }
@@ -182,7 +206,4 @@ void app_driver_init() {
 
     // Initialize the output GPIOs
     app_output_driver_init();
-
-    ws2812_led_init();
-    app_indicator_set(true);
 }

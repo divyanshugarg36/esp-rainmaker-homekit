@@ -48,6 +48,8 @@ esp_rmaker_device_t *device3;
 esp_rmaker_device_t *device4;
 esp_rmaker_device_t *device5;
 esp_rmaker_device_t *device6;
+esp_rmaker_device_t *device7;
+esp_rmaker_device_t *device8;
 esp_rmaker_device_t *temperatureDevice;
 esp_rmaker_device_t *humidityDevice;
 
@@ -57,6 +59,8 @@ esp_rmaker_param_t *power_param3;
 esp_rmaker_param_t *power_param4;
 esp_rmaker_param_t *power_param5;
 esp_rmaker_param_t *power_param6;
+esp_rmaker_param_t *power_param7;
+esp_rmaker_param_t *power_param8;
 esp_rmaker_param_t *temperature_param;
 esp_rmaker_param_t *temperature_brightness_param;
 esp_rmaker_param_t *temperature_display_param;
@@ -142,6 +146,22 @@ void IRAM_ATTR gpio_input_task(int gpioIn, int val)
         );
         app_homekit_update_state(deviceList.device6.id, val);
         break;
+    case DEVICE_7_PCF_GPIO:
+        app_driver_set_state(deviceList.device7.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device7, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device7.id, val);
+        break;
+    case DEVICE_8_PCF_GPIO:
+        app_driver_set_state(deviceList.device8.id, val);
+        esp_rmaker_param_update_and_report(
+            esp_rmaker_device_get_param_by_name(device8, ESP_RMAKER_DEF_POWER_NAME),
+            esp_rmaker_bool(val)
+        );
+        app_homekit_update_state(deviceList.device8.id, val);
+        break;
     default:
         break;
     }
@@ -184,6 +204,14 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
             app_driver_set_state(deviceList.device6.id, val.val.b);
             esp_rmaker_param_update(param, val);
             app_homekit_update_state(deviceList.device6.id, val.val.b);
+        } else if (device == device7) {
+            app_driver_set_state(deviceList.device7.id, val.val.b);
+            esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device7.id, val.val.b);
+        } else if (device == device8) {
+            app_driver_set_state(deviceList.device8.id, val.val.b);
+            esp_rmaker_param_update(param, val);
+            app_homekit_update_state(deviceList.device8.id, val.val.b);
         }
     } else if (strcmp(esp_rmaker_param_get_name(param), ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
         if (device == temperatureDevice) {
@@ -386,10 +414,10 @@ void app_main()
      * Note that this should be called after app_wifi_with_homekit_init() but before app_wifi_with_homekit_start()
      * */
     esp_rmaker_config_t rainmaker_cfg = {
-        .enable_time_sync = false,
+        .enable_time_sync = true,
     };
 
-    node = esp_rmaker_node_init(&rainmaker_cfg, "Garg's Home", "Main Hall");
+    node = esp_rmaker_node_init(&rainmaker_cfg, MANUFACTURER, "Main Hall");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -400,12 +428,14 @@ void app_main()
      * You can optionally use the helper API esp_rmaker_switch_device_create() to
      * avoid writing code for adding the name and power parameters.
      */
-    device1 = esp_rmaker_device_create(deviceList.device1.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
-    device2 = esp_rmaker_device_create(deviceList.device2.name, ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
-    device3 = esp_rmaker_device_create(deviceList.device3.name, ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
-    device4 = esp_rmaker_device_create(deviceList.device4.name, ESP_RMAKER_DEVICE_FAN, NULL);
-    device5 = esp_rmaker_device_create(deviceList.device5.name, ESP_RMAKER_DEVICE_FAN, NULL);
-    device6 = esp_rmaker_device_create(deviceList.device6.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    device1 = esp_rmaker_device_create(deviceList.device1.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    device2 = esp_rmaker_device_create(deviceList.device2.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    device3 = esp_rmaker_device_create(deviceList.device3.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
+    device4 = esp_rmaker_device_create(deviceList.device4.name, ESP_RMAKER_DEVICE_SOCKET, NULL);
+    device5 = esp_rmaker_device_create(deviceList.device5.name, ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
+    device6 = esp_rmaker_device_create(deviceList.device6.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
+    device7 = esp_rmaker_device_create(deviceList.device7.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
+    device8 = esp_rmaker_device_create(deviceList.device8.name, ESP_RMAKER_DEVICE_LIGHT, NULL);
     temperatureDevice = esp_rmaker_device_create(deviceList.temperatureDevice.name, ESP_RMAKER_DEVICE_TEMP_SENSOR, NULL);
     humidityDevice = esp_rmaker_device_create(deviceList.humidityDevice.name, ESP_RMAKER_DEVICE_HUMIDITY_SENSOR, NULL);
 
@@ -418,6 +448,8 @@ void app_main()
     esp_rmaker_device_add_cb(device4, write_cb, NULL);
     esp_rmaker_device_add_cb(device5, write_cb, NULL);
     esp_rmaker_device_add_cb(device6, write_cb, NULL);
+    esp_rmaker_device_add_cb(device7, write_cb, NULL);
+    esp_rmaker_device_add_cb(device8, write_cb, NULL);
     esp_rmaker_device_add_cb(temperatureDevice, write_cb, NULL);
 
     /* Add the standard name parameter (type: esp.param.name), which allows setting a persistent,
@@ -430,6 +462,8 @@ void app_main()
     esp_rmaker_device_add_param(device4, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device4.name));
     esp_rmaker_device_add_param(device5, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device5.name));
     esp_rmaker_device_add_param(device6, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device6.name));
+    esp_rmaker_device_add_param(device7, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device7.name));
+    esp_rmaker_device_add_param(device8, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.device8.name));
     esp_rmaker_device_add_param(temperatureDevice, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.temperatureDevice.name));
     esp_rmaker_device_add_param(humidityDevice, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, deviceList.humidityDevice.name));
 
@@ -442,6 +476,8 @@ void app_main()
     power_param4 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device4.id));
     power_param5 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device5.id));
     power_param6 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device6.id));
+    power_param7 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device7.id));
+    power_param8 = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME,app_driver_get_state(deviceList.device8.id));
     temperature_param = esp_rmaker_param_create(ESP_RMAKER_DEF_TEMPERATURE_NAME, ESP_RMAKER_PARAM_TEMPERATURE, esp_rmaker_float(0), PROP_FLAG_READ);
     temperature_brightness_param = esp_rmaker_lcd_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, 0);
     temperature_display_param = esp_rmaker_lcd_mode_param_create(ESP_RMAKER_DEF_LCD_MODE_NAME, 0);
@@ -453,6 +489,8 @@ void app_main()
     esp_rmaker_device_add_param(device4, power_param4);
     esp_rmaker_device_add_param(device5, power_param5);
     esp_rmaker_device_add_param(device6, power_param6);
+    esp_rmaker_device_add_param(device7, power_param7);
+    esp_rmaker_device_add_param(device8, power_param8);
     esp_rmaker_device_add_param(temperatureDevice, temperature_param);
     esp_rmaker_device_add_param(temperatureDevice, temperature_brightness_param);
     esp_rmaker_device_add_param(temperatureDevice, temperature_display_param);
@@ -467,6 +505,8 @@ void app_main()
     esp_rmaker_device_assign_primary_param(device4, power_param4);
     esp_rmaker_device_assign_primary_param(device5, power_param5);
     esp_rmaker_device_assign_primary_param(device6, power_param6);
+    esp_rmaker_device_assign_primary_param(device7, power_param7);
+    esp_rmaker_device_assign_primary_param(device8, power_param8);
     esp_rmaker_device_assign_primary_param(temperatureDevice, temperature_param);
     esp_rmaker_device_assign_primary_param(humidityDevice, humidity_param);
 
@@ -477,6 +517,9 @@ void app_main()
     esp_rmaker_node_add_device(node, device4);
     esp_rmaker_node_add_device(node, device5);
     esp_rmaker_node_add_device(node, device6);
+    esp_rmaker_node_add_device(node, device7);
+    esp_rmaker_node_add_device(node, device8);
+
     if (isAHT10Connected) {
         esp_rmaker_node_add_device(node, temperatureDevice);
         esp_rmaker_node_add_device(node, humidityDevice);
