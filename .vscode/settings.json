@@ -35,7 +35,9 @@
         "pcf8574.h": "c",
         "hap_apple_chars.h": "c",
         "esp_err.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "config.h": "c",
+        "i2c.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

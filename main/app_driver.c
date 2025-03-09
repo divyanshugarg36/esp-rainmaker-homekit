@@ -16,6 +16,7 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 #include "app_nvs.c"
+#include "app_config.h"
 
 /* Power state of each device */
 static bool g_power_state1 = BUTTON_ACTIVE_LOW;

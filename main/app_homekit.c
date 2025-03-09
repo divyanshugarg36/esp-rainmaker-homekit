@@ -25,6 +25,8 @@
 #include <qrcode.h>
 
 #include "app_priv.h"
+#include "app_config.h"
+#include "app_utils.h"
 
 static const char *TAG = "app_homekit";
 
@@ -41,11 +43,7 @@ static hap_char_t *temperatureDevice_char;
 static hap_char_t *temperatureDevice_display_brightness_char;
 static hap_char_t *temperatureDevice_display_brightness_power_char;
 static hap_char_t *temperatureDevice_display_mode_char;
-
 static hap_char_t *humidityDevice_char;
-
-char *display_brightness = "Brightness";
-char *display_mode = "Display Mode";
 
 #define QRCODE_BASE_URL  "https://espressif.github.io/esp-homekit-sdk/qrcode.html"
 
@@ -125,13 +123,13 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
 {
     int i, ret = HAP_SUCCESS;
     hap_write_data_t *write;
-    char *deviceName = (char *)serv_priv;
-    printf("Write called for Accessory %s\n", deviceName);
-    if (strcmp(deviceName, deviceList.device1.name) == 0) {
+    char *deviceUid = (char *)serv_priv;
+    printf("Write called for Accessory %s\n", deviceUid);
+    if (strcmp(deviceUid, deviceList.device1.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device1.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -146,11 +144,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device2.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device2.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device2.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -165,11 +163,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device3.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device3.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device3.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -183,11 +181,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device4.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device4.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */   
                 app_driver_set_state(deviceList.device4.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -201,11 +199,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         } 
-    } else if (strcmp(deviceName, deviceList.device5.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device5.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device5.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -219,11 +217,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device6.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device6.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device6.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -237,11 +235,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device7.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device7.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device7.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -255,11 +253,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, deviceList.device8.name) == 0) {
+    } else if (strcmp(deviceUid, deviceList.device8.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 /* Set the switch state */
                 app_driver_set_state(deviceList.device8.id, write->val.b);
                 /* Update the HomeKit characteristic */
@@ -273,11 +271,11 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, display_brightness) == 0) {
+    } else if (strcmp(deviceUid, deviceList.displayBrightnessDevice.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 if (write->val.b) {
                     // Read Existing Brightness value
                     const hap_val_t *brightnessVal = hap_char_get_val(temperatureDevice_display_brightness_char);
@@ -285,7 +283,7 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 } else {
                     brightness = 0; 
                 }
-                setDisplayData();
+                set_display_data();
                 /* Update the HomeKit characteristic */
                 hap_char_update_val(write->hc, &(write->val));
                 esp_rmaker_param_update_and_report(
@@ -297,7 +295,7 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 int newBrightness = percent_to_display(write->val.i);
                 if (brightness != newBrightness) {
                     brightness = newBrightness;
-                    setDisplayData();
+                    set_display_data();
                     hap_char_update_val(write->hc, &(write->val)); // IMPORTANT
                     esp_rmaker_param_update_and_report(
                         esp_rmaker_device_get_param_by_name(temperatureDevice, ESP_RMAKER_DEF_BRIGHTNESS_NAME),
@@ -308,13 +306,13 @@ static int IRAM_ATTR homekit_write(hap_write_data_t write_data[], int count,
                 *(write->status) = HAP_STATUS_RES_ABSENT;
             }
         }
-    } else if (strcmp(deviceName, display_mode) == 0) {
+    } else if (strcmp(deviceUid, deviceList.displayModeDevice.uid) == 0) {
         for (i = 0; i < count; i++) {
             write = &write_data[i];
             if (!strcmp(hap_char_get_type_uuid(write->hc), HAP_CHAR_UUID_ON)) {
-                printf("%s Status -> %s\n", deviceName, write->val.b ? "On" : "Off");
+                printf("%s Status -> %s\n", deviceUid, write->val.b ? "On" : "Off");
                 displayMode = write->val.b ? 1 : 0;
-                setDisplayData();
+                set_display_data();
                 hap_char_update_val(write->hc, &(write->val)); // IMPORTANT
                 esp_rmaker_param_update_and_report(
                         esp_rmaker_device_get_param_by_name(temperatureDevice, ESP_RMAKER_DEF_LCD_MODE_NAME),
@@ -358,7 +356,7 @@ esp_err_t app_homekit_update_state(int deviceId, bool state)
     case DEVICE_8_ID:
         hap_char_update_val(device8_char, &new_value);
         break;
-    case DEVICE_TEMPERATURE_MODE:
+    case DEVICE_DISPLAY_MODE:
         hap_char_update_val(temperatureDevice_display_mode_char, &new_value);
         break;
     default:
@@ -394,7 +392,7 @@ esp_err_t app_homekit_update_brightness_state(int deviceId, int state)
         .i = display_to_percent(state),
     };
     switch (deviceId) {
-    case DEVICE_TEMPERATURE_BRIGHTNESS:
+    case DEVICE_DISPLAY_BRIGHTNESS:
         hap_val_t on_value = {
             .b = state == 0 ? false : true,
         };
@@ -406,6 +404,26 @@ esp_err_t app_homekit_update_brightness_state(int deviceId, int state)
         break;
     }
     return ESP_OK;
+}
+
+hap_serv_t *device_to_homekit_device_type(DeviceType type, bool on) {
+    hap_serv_t *hs;
+    switch (type) {
+        case DEVICE_TYPE_SOCKET:
+            hs = hap_serv_switch_create(on);
+            break;
+        case DEVICE_TYPE_LIGHT:
+        case DEVICE_TYPE_LIGHTBULB:
+            hs = hap_serv_lightbulb_create(on);
+            break;
+        case DEVICE_TYPE_FAN:
+            hs = hap_serv_fan_create(on);
+            break;
+        default:
+            hs = hap_serv_switch_create(on);
+            break;
+    }
+    return hs;
 }
 
 esp_err_t app_homekit_start()
@@ -442,216 +460,211 @@ esp_err_t app_homekit_start()
     /* Add the Accessory to the HomeKit Database */
     hap_add_accessory(accessory);
 
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device1_cfg = create_hap_config(deviceList.device1.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device1_cfg);
-    /* Create the Outlet Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device1.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device1.name));
-    /* Set the Accessory name as the Private data for the service,
-     * so that the correct accessory can be identified in the
-     * write callback
-     */
-    hap_serv_set_priv(service, strdup(deviceList.device1.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device1_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Outlet Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device1.name));
-
-
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device2_cfg = create_hap_config(deviceList.device2.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device2_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device2.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device2.name));
-    /* Set the Accessory name as the Private data for the service,
+    if(strcmp(deviceList.device1.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device1_cfg = create_hap_config(deviceList.device1.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device1_cfg);
+        /* Create the Outlet Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device1.type, app_driver_get_state(deviceList.device1.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device1.name));
+        /* Set the Accessory name as the Private data for the service,
         * so that the correct accessory can be identified in the
         * write callback
         */
-    hap_serv_set_priv(service, strdup(deviceList.device2.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device2_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device2.name));
+        hap_serv_set_priv(service, strdup(deviceList.device1.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device1_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Outlet Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device1.uid));
+    }
 
+    if(strcmp(deviceList.device2.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device2_cfg = create_hap_config(deviceList.device2.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device2_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device2.type, app_driver_get_state(deviceList.device2.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device2.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device2.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device2_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device2.uid));
+    }
 
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device3_cfg = create_hap_config(deviceList.device3.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device3_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device3.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device3.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device3.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device3_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device3.name));
+    if(strcmp(deviceList.device3.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device3_cfg = create_hap_config(deviceList.device3.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device3_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device3.type, app_driver_get_state(deviceList.device3.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device3.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device3.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device3_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device3.uid));
+    }
 
+    if(strcmp(deviceList.device4.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device4_cfg = create_hap_config(deviceList.device4.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device4_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device4.type, app_driver_get_state(deviceList.device4.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device4.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device4.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device4_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device4.uid));
+    }
 
+    if(strcmp(deviceList.device5.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device5_cfg = create_hap_config(deviceList.device5.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device5_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device5.type, app_driver_get_state(deviceList.device5.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device5.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device5.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device5_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device5.uid));
+    }
 
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device4_cfg = create_hap_config(deviceList.device4.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device4_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device4.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device4.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device4.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device4_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device4.name));
+    if(strcmp(deviceList.device6.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device6_cfg = create_hap_config(deviceList.device6.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device6_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device6.type, app_driver_get_state(deviceList.device6.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device6.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device6.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device6_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device6.uid));
+    }
 
+    if(strcmp(deviceList.device7.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device7_cfg = create_hap_config(deviceList.device7.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device7_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device7.type, app_driver_get_state(deviceList.device7.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device7.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device7.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device7_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device7.uid));
+    }
 
-
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device5_cfg = create_hap_config(deviceList.device5.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device5_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device5.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device5.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device5.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device5_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device5.name));
-
-
-
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device6_cfg = create_hap_config(deviceList.device6.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device6_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device6.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device6.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device6.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device6_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device6.name));
-
-
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device7_cfg = create_hap_config(deviceList.device7.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device7_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device7.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device7.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device7.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device7_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device7.name));
-
-
-    /*
-     * Bridge Accessory
-     */ 
-    hap_acc_cfg_t device8_cfg = create_hap_config(deviceList.device8.name);
-    /* Create accessory object */
-    accessory = hap_acc_create(&device8_cfg);
-    /* Create the Fan Service. Include the "name" since this is a user visible service  */
-    service = hap_serv_switch_create(app_driver_get_state(deviceList.device8.id));
-    hap_serv_add_char(service, hap_char_name_create(deviceList.device8.name));
-    /* Set the Accessory name as the Private data for the service,
-        * so that the correct accessory can be identified in the
-        * write callback
-        */
-    hap_serv_set_priv(service, strdup(deviceList.device8.name));
-    /* Set the write callback for the service */
-    hap_serv_set_write_cb(service, homekit_write);
-    /* Get pointer to the on_char to be used during update */
-    device8_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
-    /* Add the Fan Service to the Accessory Object */
-    hap_acc_add_serv(accessory, service);
-    /* Add the Accessory to the HomeKit Database */
-    hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device8.name));
-
+    if(strcmp(deviceList.device8.name, UNASSIGNED) != 0) {
+        /*
+        * Bridge Accessory
+        */ 
+        hap_acc_cfg_t device8_cfg = create_hap_config(deviceList.device8.name);
+        /* Create accessory object */
+        accessory = hap_acc_create(&device8_cfg);
+        /* Create the Fan Service. Include the "name" since this is a user visible service  */
+        service = device_to_homekit_device_type(deviceList.device8.type, app_driver_get_state(deviceList.device8.id));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.device8.name));
+        /* Set the Accessory name as the Private data for the service,
+            * so that the correct accessory can be identified in the
+            * write callback
+            */
+        hap_serv_set_priv(service, strdup(deviceList.device8.uid));
+        /* Set the write callback for the service */
+        hap_serv_set_write_cb(service, homekit_write);
+        /* Get pointer to the on_char to be used during update */
+        device8_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
+        /* Add the Fan Service to the Accessory Object */
+        hap_acc_add_serv(accessory, service);
+        /* Add the Accessory to the HomeKit Database */
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.device8.uid));
+    }
 
     if (isAHT10Connected) {
         /*
         *  Display Brightness
         */
-        hap_acc_cfg_t display_brightness_cfg = {
-            .name = display_brightness,
-            .manufacturer = MANUFACTURER,
-            .model = MODEL,
-            .serial_num = SERIAL_NUMBER,
-            .fw_rev = FIRMWARE_REVISION,
-            .hw_rev = NULL,
-            .pv = "1.1.0",
-            .identify_routine = accessory_identify,
-            .cid = HAP_CID_BRIDGE,
-        };
+        hap_acc_cfg_t display_brightness_cfg = create_hap_config(deviceList.displayBrightnessDevice.name);
 
         /* Create accessory object */
         accessory = hap_acc_create(&display_brightness_cfg);
@@ -660,30 +673,20 @@ esp_err_t app_homekit_start()
         service = hap_serv_lightbulb_create(false);
 
         /* Add the optional characteristic to the Light Bulb Service */
-        hap_serv_add_char(service, hap_char_name_create(display_brightness));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.displayBrightnessDevice.name));
         hap_serv_add_char(service, hap_char_brightness_create(0));
 
-        hap_serv_set_priv(service, strdup(display_brightness));
+        hap_serv_set_priv(service, strdup(deviceList.displayBrightnessDevice.uid));
         hap_serv_set_write_cb(service, homekit_write);
         temperatureDevice_display_brightness_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_BRIGHTNESS);
         temperatureDevice_display_brightness_power_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
         hap_acc_add_serv(accessory, service);
-        hap_add_bridged_accessory(accessory, hap_get_unique_aid(display_brightness));
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.displayBrightnessDevice.uid));
 
         /*
         *  Display Mode
         */
-        hap_acc_cfg_t display_mode_cfg = {
-            .name = display_mode,
-            .manufacturer = MANUFACTURER,
-            .model = MODEL,
-            .serial_num = SERIAL_NUMBER,
-            .fw_rev = FIRMWARE_REVISION,
-            .hw_rev = NULL,
-            .pv = "1.1.0",
-            .identify_routine = accessory_identify,
-            .cid = HAP_CID_BRIDGE,
-        };
+        hap_acc_cfg_t display_mode_cfg = create_hap_config(deviceList.displayModeDevice.name);
 
         /* Create accessory object */
         accessory = hap_acc_create(&display_mode_cfg);
@@ -691,28 +694,18 @@ esp_err_t app_homekit_start()
         service = hap_serv_switch_create(displayMode);
 
         /* Add the optional characteristic to the Light Bulb Service */
-        hap_serv_add_char(service, hap_char_name_create(display_mode));
+        hap_serv_add_char(service, hap_char_name_create(deviceList.displayModeDevice.name));
 
-        hap_serv_set_priv(service, strdup(display_mode));
+        hap_serv_set_priv(service, strdup(deviceList.displayModeDevice.uid));
         hap_serv_set_write_cb(service, homekit_write);
         temperatureDevice_display_mode_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_ON);
         hap_acc_add_serv(accessory, service);
-        hap_add_bridged_accessory(accessory, hap_get_unique_aid(display_mode));
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.displayModeDevice.uid));
 
         /*
         * Bridge Accessory Temperature Sensor
         */ 
-        hap_acc_cfg_t temperatureDevice_cfg = {
-            .name = deviceList.temperatureDevice.name,
-            .manufacturer = MANUFACTURER,
-            .model = MODEL,
-            .serial_num = SERIAL_NUMBER,
-            .fw_rev = FIRMWARE_REVISION,
-            .hw_rev = NULL,
-            .pv = "1.1.0",
-            .identify_routine = accessory_identify,
-            .cid = HAP_CID_BRIDGE,
-        };
+        hap_acc_cfg_t temperatureDevice_cfg = create_hap_config(deviceList.temperatureDevice.name);
         /* Create accessory object */
         accessory = hap_acc_create(&temperatureDevice_cfg);
         /* Create the Temperature Sensor Service */
@@ -729,30 +722,20 @@ esp_err_t app_homekit_start()
          * so that the correct accessory can be identified in the
          * write callback
          */
-        hap_serv_set_priv(service, strdup(deviceList.temperatureDevice.name));
+        hap_serv_set_priv(service, strdup(deviceList.temperatureDevice.uid));
         /* Get pointer to the on_char to be used during update */
         temperatureDevice_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_CURRENT_TEMPERATURE);
         /* Add the Fan Service to the Accessory Object */
         hap_acc_add_serv(accessory, service);
         /* Add the Accessory to the HomeKit Database */
-        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.temperatureDevice.name));
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.temperatureDevice.uid));
 
 
 
         /*
         * Bridge Accessory - Humidity Sensor
         */ 
-        hap_acc_cfg_t humidityDevice_cfg = {
-            .name = deviceList.humidityDevice.name,
-            .manufacturer = MANUFACTURER,
-            .model = MODEL,
-            .serial_num = SERIAL_NUMBER,
-            .fw_rev = FIRMWARE_REVISION,
-            .hw_rev = NULL,
-            .pv = "1.1.0",
-            .identify_routine = accessory_identify,
-            .cid = HAP_CID_BRIDGE,
-        };
+        hap_acc_cfg_t humidityDevice_cfg = create_hap_config(deviceList.humidityDevice.name);
 
         /* Create Accessory Object (Automatically adds Accessory Information Service) */
         accessory = hap_acc_create(&humidityDevice_cfg);
@@ -764,7 +747,7 @@ esp_err_t app_homekit_start()
         hap_serv_add_char(service, hap_char_name_create(deviceList.humidityDevice.name));
 
         /* Set the Accessory name as Private Data */
-        hap_serv_set_priv(service, strdup(deviceList.humidityDevice.name));
+        hap_serv_set_priv(service, strdup(deviceList.humidityDevice.uid));
 
         /* Get Humidity Characteristic */
         humidityDevice_char = hap_serv_get_char_by_uuid(service, HAP_CHAR_UUID_CURRENT_RELATIVE_HUMIDITY);
@@ -773,7 +756,7 @@ esp_err_t app_homekit_start()
         hap_acc_add_serv(accessory, service);
 
         /* Add Accessory to HomeKit Database */
-        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.humidityDevice.name));
+        hap_add_bridged_accessory(accessory, hap_get_unique_aid(deviceList.humidityDevice.uid));
     }
 
 
