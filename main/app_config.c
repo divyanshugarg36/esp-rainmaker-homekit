@@ -6,6 +6,9 @@
 uint8_t PRIMARY_MAC[] = {0x5C, 0x01, 0x3B, 0x4A, 0x00, 0xAC};
 uint8_t SECONDARY_MAC[] = {0x08, 0xD1, 0xF9, 0x35, 0x64, 0x20};
 
+char *node_name = UNASSIGNED;
+char *node_type = UNASSIGNED;
+
 Devices deviceList = {
     .device1 = {
         .id = DEVICE_1_ID,
@@ -95,6 +98,9 @@ Devices deviceList = {
 
 void initialize_device_list(uint8_t *mac) {
     if (memcmp(mac, PRIMARY_MAC, 6) == 0) {
+        node_name = strdup("Main Hall");
+        node_type = strdup("Primary");
+
         deviceList.device1.name = strdup("Main Light");
         deviceList.device1.type = DEVICE_TYPE_LIGHT;
         deviceList.device2.name = strdup("Side Light 1");
@@ -112,6 +118,9 @@ void initialize_device_list(uint8_t *mac) {
         // deviceList.device8.name = strdup("Ceiling Light 2");
         // deviceList.device8.type = DEVICE_TYPE_LIGHTBULB;
     } else if (memcmp(mac, SECONDARY_MAC, 6) == 0) {
+        node_name = strdup("Lobby");
+        node_type = strdup("Secondary");
+
         deviceList.device1.name = strdup("Outer Switch");
         deviceList.device1.type = DEVICE_TYPE_SOCKET;
         deviceList.device2.name = strdup("Table Switch R");

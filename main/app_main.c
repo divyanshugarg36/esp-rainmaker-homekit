@@ -432,7 +432,7 @@ void app_main()
         .enable_time_sync = true,
     };
 
-    node = esp_rmaker_node_init(&rainmaker_cfg, MANUFACTURER, "Main Hall");
+    node = esp_rmaker_node_init(&rainmaker_cfg, node_name, node_type);
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);

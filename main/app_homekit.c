@@ -439,7 +439,7 @@ esp_err_t app_homekit_start()
      * the mandatory services internally
      */
     hap_acc_cfg_t cfg = {
-        .name = "Garg HomeKit",
+        .name = node_name,
         .manufacturer = MANUFACTURER,
         .model = MODEL,
         .serial_num = SERIAL_NUMBER,

@@ -38,6 +38,8 @@ typedef struct
     Switch displayModeDevice;
 } Devices;
 
+extern char *node_name;
+extern char *node_type;
 extern Devices deviceList; // Global variable declaration
 
 void initialize_device_list(uint8_t *mac);
