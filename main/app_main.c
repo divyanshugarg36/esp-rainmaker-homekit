@@ -90,73 +90,61 @@ void set_display_data() {
 
 void IRAM_ATTR gpio_input_task(int gpioIn, int val)
 {
-    switch (gpioIn)
-    {
-    case DEVICE_1_PCF_GPIO:
+    if (deviceList.device1.gpioIn == gpioIn){
         app_driver_set_state(deviceList.device1.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device1, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val));
         app_homekit_update_state(deviceList.device1.id, val);
-        break;
-    case DEVICE_2_PCF_GPIO:
+    } else if (deviceList.device2.gpioIn == gpioIn){
         app_driver_set_state(deviceList.device2.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device2, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device2.id, val);
-        break;
-    case DEVICE_3_PCF_GPIO:
+    } else if (deviceList.device3.gpioIn == gpioIn){
         app_driver_set_state(deviceList.device3.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device3, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device3.id, val);
-        break;
-    case DEVICE_4_PCF_GPIO:
+    } else if (deviceList.device4.gpioIn == gpioIn){
         app_driver_set_state(deviceList.device4.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device4, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device4.id, val);
-        break;
-    case DEVICE_5_PCF_GPIO:
+    } else if (deviceList.device5.gpioIn == gpioIn){
         app_driver_set_state(deviceList.device5.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device5, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device5.id, val);
-        break;
-    case DEVICE_6_PCF_GPIO:
+    } else if (deviceList.device6.gpioIn == gpioIn) {
         app_driver_set_state(deviceList.device6.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device6, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device6.id, val);
-        break;
-    case DEVICE_7_PCF_GPIO:
+    } else if (deviceList.device7.gpioIn == gpioIn) {
         app_driver_set_state(deviceList.device7.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device7, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device7.id, val);
-        break;
-    case DEVICE_8_PCF_GPIO:
+    } else if (deviceList.device8.gpioIn == gpioIn) {
         app_driver_set_state(deviceList.device8.id, val);
         esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_name(device8, ESP_RMAKER_DEF_POWER_NAME),
             esp_rmaker_bool(val)
         );
         app_homekit_update_state(deviceList.device8.id, val);
-        break;
-    default:
-        break;
     }
     // printf("Minimum free heap size: %"PRIu32" bytes\n", esp_get_minimum_free_heap_size());
 }

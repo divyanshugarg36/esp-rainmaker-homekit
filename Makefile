@@ -8,7 +8,7 @@ ifeq ($(HOMEKIT_PATH),)
 endif
 
 PROJECT_NAME := homekit_switch
-PROJECT_VER := 1.0
+PROJECT_VER := 1.0.6
 
 # Add RainMaker components and other common application components
 EXTRA_COMPONENT_DIRS += $(PROJECT_PATH)/../../components $(PROJECT_PATH)/../common $(HOMEKIT_PATH)/components/homekit

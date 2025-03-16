@@ -72,14 +72,14 @@ extern bool isPCF8574Connected;
 
 // AVAILABLE_GPIOS 14, 27
 
-#define DEVICE_1_PCF_GPIO   0
-#define DEVICE_2_PCF_GPIO   1
-#define DEVICE_3_PCF_GPIO   2
-#define DEVICE_4_PCF_GPIO   3
-#define DEVICE_5_PCF_GPIO   4
-#define DEVICE_6_PCF_GPIO   5
-#define DEVICE_7_PCF_GPIO   6
-#define DEVICE_8_PCF_GPIO   7
+#define PCF_GPIO_1   0
+#define PCF_GPIO_2   1
+#define PCF_GPIO_3   2
+#define PCF_GPIO_4   3
+#define PCF_GPIO_5   4
+#define PCF_GPIO_6   5
+#define PCF_GPIO_7   6
+#define PCF_GPIO_8   7
 
 #define PROCESS_INDICATOR   25
 #define POWER_INDICATOR     26

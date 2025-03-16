@@ -15,7 +15,7 @@ Devices deviceList = {
         .uid = "D1",
         .name = UNASSIGNED,
         .gpio = DEVICE_1_OUTPUT_GPIO,
-        .gpioIn = DEVICE_1_PCF_GPIO,
+        .gpioIn = PCF_GPIO_1,
         .type = NONE
     },
     .device2 = {
@@ -23,7 +23,7 @@ Devices deviceList = {
         .uid = "D2",
         .name = UNASSIGNED,
         .gpio = DEVICE_2_OUTPUT_GPIO,
-        .gpioIn = DEVICE_2_PCF_GPIO,
+        .gpioIn = PCF_GPIO_2,
         .type = NONE
     },
     .device3 = {
@@ -31,7 +31,7 @@ Devices deviceList = {
         .uid = "D3",
         .name = UNASSIGNED,
         .gpio = DEVICE_3_OUTPUT_GPIO,
-        .gpioIn = DEVICE_3_PCF_GPIO,
+        .gpioIn = PCF_GPIO_3,
         .type = NONE
     },
     .device4 = {
@@ -39,7 +39,7 @@ Devices deviceList = {
         .uid = "D4",
         .name = UNASSIGNED,
         .gpio = DEVICE_4_OUTPUT_GPIO,
-        .gpioIn = DEVICE_4_PCF_GPIO,
+        .gpioIn = PCF_GPIO_4,
         .type = NONE
     },
     .device5 = {
@@ -47,7 +47,7 @@ Devices deviceList = {
         .uid = "D5",
         .name = UNASSIGNED,
         .gpio = DEVICE_5_OUTPUT_GPIO,
-        .gpioIn = DEVICE_5_PCF_GPIO,
+        .gpioIn = PCF_GPIO_5,
         .type = NONE
     },
     .device6 = {
@@ -55,7 +55,7 @@ Devices deviceList = {
         .uid = "D6",
         .name = UNASSIGNED,
         .gpio = DEVICE_6_OUTPUT_GPIO,
-        .gpioIn = DEVICE_6_PCF_GPIO,
+        .gpioIn = PCF_GPIO_6,
         .type = NONE
     },
     .device7 = {
@@ -63,7 +63,7 @@ Devices deviceList = {
         .uid = "D7",
         .name = UNASSIGNED,
         .gpio = DEVICE_7_OUTPUT_GPIO,
-        .gpioIn = DEVICE_7_PCF_GPIO,
+        .gpioIn = PCF_GPIO_7,
         .type = NONE
     },
     .device8 = {
@@ -71,7 +71,7 @@ Devices deviceList = {
         .uid = "D8",
         .name = UNASSIGNED,
         .gpio = DEVICE_8_OUTPUT_GPIO,
-        .gpioIn = DEVICE_8_PCF_GPIO,
+        .gpioIn = PCF_GPIO_8,
         .type = NONE
     },
     .temperatureDevice = {
@@ -101,37 +101,37 @@ void initialize_device_list(uint8_t *mac) {
         node_name = strdup("Main Hall");
         node_type = strdup("Primary");
 
-        deviceList.device1.name = strdup("Main Light");
-        deviceList.device1.type = DEVICE_TYPE_LIGHT;
-        deviceList.device1.gpioIn = DEVICE_1_PCF_GPIO; // This is fine
+        deviceList.device1.name = strdup("Clock Switch");
+        deviceList.device1.type = DEVICE_TYPE_SOCKET;
+        deviceList.device1.gpioIn = PCF_GPIO_1;
 
-        deviceList.device2.name = strdup("Side Light 1");
-        deviceList.device2.type = DEVICE_TYPE_LIGHTBULB;
-        deviceList.device2.gpioIn = DEVICE_2_PCF_GPIO;
+        deviceList.device2.name = strdup("Fan 2");
+        deviceList.device2.type = DEVICE_TYPE_FAN;
+        deviceList.device2.gpioIn =PCF_GPIO_3;
 
         deviceList.device3.name = strdup("Side Light 2");
         deviceList.device3.type = DEVICE_TYPE_LIGHTBULB;
-        deviceList.device3.gpioIn = DEVICE_5_PCF_GPIO;
+        deviceList.device3.gpioIn =PCF_GPIO_2;
 
-        deviceList.device4.name = strdup("Fan 1"); // This is fine
+        deviceList.device4.name = strdup("Fan 1");
         deviceList.device4.type = DEVICE_TYPE_FAN;
-        deviceList.device4.gpioIn = DEVICE_4_PCF_GPIO;
+        deviceList.device4.gpioIn = PCF_GPIO_4;
 
-        deviceList.device5.name = strdup("Fan 2");
-        deviceList.device5.type = DEVICE_TYPE_FAN;
-        deviceList.device5.gpioIn = DEVICE_3_PCF_GPIO;
+        // deviceList.device5.name = strdup("Nothing");
+        deviceList.device5.type = DEVICE_TYPE_SOCKET;
+        deviceList.device5.gpioIn = PCF_GPIO_5;
 
         deviceList.device6.name = strdup("Down Ceiling");
         deviceList.device6.type = DEVICE_TYPE_LIGHT;
-        deviceList.device6.gpioIn = DEVICE_6_PCF_GPIO;
+        deviceList.device6.gpioIn =PCF_GPIO_7;
 
-        deviceList.device7.name = strdup("Clock Switch");
-        deviceList.device7.type = DEVICE_TYPE_SOCKET;
-        deviceList.device7.gpioIn = DEVICE_7_PCF_GPIO;
+        deviceList.device7.name = strdup("Side Light 1");
+        deviceList.device7.type = DEVICE_TYPE_LIGHTBULB;
+        deviceList.device7.gpioIn =  PCF_GPIO_6;
 
-        deviceList.device8.name = strdup("Ceiling Light 2");
-        deviceList.device8.type = DEVICE_TYPE_LIGHTBULB;
-        deviceList.device8.gpioIn = DEVICE_8_PCF_GPIO;
+        deviceList.device8.name = strdup("Main Light");
+        deviceList.device8.type = DEVICE_TYPE_LIGHT;
+        deviceList.device8.gpioIn = PCF_GPIO_8;
 
     } else if (memcmp(mac, SECONDARY_MAC, 6) == 0) {
         node_name = strdup("Lobby");
