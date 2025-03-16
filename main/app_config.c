@@ -103,20 +103,36 @@ void initialize_device_list(uint8_t *mac) {
 
         deviceList.device1.name = strdup("Main Light");
         deviceList.device1.type = DEVICE_TYPE_LIGHT;
+        deviceList.device1.gpioIn = DEVICE_1_PCF_GPIO; // This is fine
+
         deviceList.device2.name = strdup("Side Light 1");
         deviceList.device2.type = DEVICE_TYPE_LIGHTBULB;
+        deviceList.device2.gpioIn = DEVICE_2_PCF_GPIO;
+
         deviceList.device3.name = strdup("Side Light 2");
         deviceList.device3.type = DEVICE_TYPE_LIGHTBULB;
-        deviceList.device4.name = strdup("Fan 1");
+        deviceList.device3.gpioIn = DEVICE_5_PCF_GPIO;
+
+        deviceList.device4.name = strdup("Fan 1"); // This is fine
         deviceList.device4.type = DEVICE_TYPE_FAN;
+        deviceList.device4.gpioIn = DEVICE_4_PCF_GPIO;
+
         deviceList.device5.name = strdup("Fan 2");
         deviceList.device5.type = DEVICE_TYPE_FAN;
+        deviceList.device5.gpioIn = DEVICE_3_PCF_GPIO;
+
         deviceList.device6.name = strdup("Down Ceiling");
         deviceList.device6.type = DEVICE_TYPE_LIGHT;
+        deviceList.device6.gpioIn = DEVICE_6_PCF_GPIO;
+
         deviceList.device7.name = strdup("Clock Switch");
         deviceList.device7.type = DEVICE_TYPE_SOCKET;
-        // deviceList.device8.name = strdup("Ceiling Light 2");
-        // deviceList.device8.type = DEVICE_TYPE_LIGHTBULB;
+        deviceList.device7.gpioIn = DEVICE_7_PCF_GPIO;
+
+        deviceList.device8.name = strdup("Ceiling Light 2");
+        deviceList.device8.type = DEVICE_TYPE_LIGHTBULB;
+        deviceList.device8.gpioIn = DEVICE_8_PCF_GPIO;
+
     } else if (memcmp(mac, SECONDARY_MAC, 6) == 0) {
         node_name = strdup("Lobby");
         node_type = strdup("Secondary");
